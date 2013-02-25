@@ -21,6 +21,8 @@ import os
 from util.monitor import monitor_qlen
 from util.helper import stdev
 
+from topos import FatTreeTopo
+from workloads import OneToOneWorkload
 
 # Number of samples to skip for reference util calibration.
 CALIBRATION_SKIP = 10
@@ -386,27 +388,20 @@ def main():
     "Create network and run Buffer Sizing experiment"
 
     start = time()
-    # Reset to known state
-    topo = StarTopo(n=args.n, bw_host=args.bw_host,
-                    delay='%sms' % args.delay,
-                    bw_net=args.bw_net, maxq=args.maxq)
+    topo = FatTreeTopo()
     net = Mininet(topo=topo, host=CPULimitedHost, link=TCLink)
     net.start()
     dumpNodeConnections(net.hosts)
+    workload = OneToOneWorkload(net)
     net.pingAll()
 
-    # TODO: verify latency and bandwidth of links in the topology you
-    # just created.
+    # TODO: Measure initial latency + bandwidth for percentages
     verify_latency(net)
     verify_bandwidth(net)
 
-    start_receiver(net)
-
-    start_tcpprobe()
-
     cprint("Starting experiment", "green")
 
-    start_senders(net)
+    print workload.run()
 
     # TODO: change the interface for which queue size is adjusted
     ret = do_sweep(iface='s0-eth1')
