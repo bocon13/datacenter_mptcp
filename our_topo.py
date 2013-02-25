@@ -1,11 +1,16 @@
 #!/usr/bin/env python
 
+from mininet.topo import Topo
+
 class FatTreeTopo(Topo):
     def __init__(self, k=4, bw=1):
         super(FatTreeTopo, self).__init__()
         self.k = k
         self.bw = bw
-    
+	self.create_topo()
+
+    def create_topo(self):
+	k = self.k
         hosts = [ 'h%i' % x for x in range(k*k)]
         core_switches = [ 'cs%i' % x for x in range(k)]
         agg_switches = [ 'as%i' % x for x in range(2*k)]

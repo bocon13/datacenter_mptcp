@@ -24,7 +24,7 @@ import os
 #from util.helper import stdev
 
 import mptcp_util
-from topos import FatTreeTopo
+from our_topo import FatTreeTopo
 from workloads import OneToOneWorkload
 
 # Number of samples to skip for reference util calibration.
