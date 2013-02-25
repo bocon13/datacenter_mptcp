@@ -2,16 +2,21 @@
 
 from random import choice
 
+CUSTOM_IPERF_PATH = 'iperf'
+seconds = 10
+
 class OneToOneWorkload():
     def __init__(self, net):
         self.mappings = []
         hosts = list(net.hosts)
         while hosts:
-            server, client = choice(hosts), choice(hosts)
-            self.mappings.append((server, client))
+            server = choice(hosts)
             hosts.remove(server)
+            client = choice(hosts)
             hosts.remove(client)
-    def run(net):
+            self.mappings.append((server, client))
+
+    def run(self):
         for mapping in self.mappings:
             server, client = mapping
             server.sendCmd("%s -s -p %s" %

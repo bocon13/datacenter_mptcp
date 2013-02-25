@@ -5,7 +5,9 @@
 from mininet.topo import Topo
 from mininet.node import CPULimitedHost
 from mininet.link import TCLink
+from mininet.node import OVSKernelSwitch 
 from mininet.net import Mininet
+from mininet.cli import CLI
 from mininet.log import lg
 from mininet.util import dumpNodeConnections
 
@@ -18,9 +20,10 @@ from argparse import ArgumentParser
 
 import sys
 import os
-from util.monitor import monitor_qlen
-from util.helper import stdev
+#from util.monitor import monitor_qlen
+#from util.helper import stdev
 
+import mptcp_util
 from topos import FatTreeTopo
 from workloads import OneToOneWorkload
 
@@ -82,14 +85,13 @@ parser.add_argument('--delay',
                     type=float,
                     help="Delay in milliseconds of host links",
                     default=87)
-
+'''
 parser.add_argument('--dir', '-d',
                     dest="dir",
                     action="store",
                     help="Directory to store outputs",
                     default="results",
                     required=True)
-
 parser.add_argument('-n',
                     dest="n",
                     type=int,
@@ -125,19 +127,21 @@ parser.add_argument('--iperf',
                     dest="iperf",
                     help="Path to custom iperf",
                     required=True)
+'''
 
 # Expt parameters
 args = parser.parse_args()
 
-CUSTOM_IPERF_PATH = args.iperf
-assert(os.path.exists(CUSTOM_IPERF_PATH))
+#CUSTOM_IPERF_PATH = args.iperf
+#assert(os.path.exists(CUSTOM_IPERF_PATH))
 
-if not os.path.exists(args.dir):
-    os.makedirs(args.dir)
+#if not os.path.exists(args.dir):
+#    os.makedirs(args.dir)
 
 lg.setLogLevel('info')
 
 # Topology to be instantiated in Mininet
+'''
 class StarTopo(Topo):
     "Star topology for Buffer Sizing experiment"
 
@@ -158,7 +162,7 @@ class StarTopo(Topo):
     # size.
     def create_topology(self):
         pass
-
+'''
 def start_tcpprobe():
     "Install tcp_probe module and dump to file"
     os.system("rmmod tcp_probe 2>/dev/null; modprobe tcp_probe;")
@@ -364,8 +368,8 @@ def verify_bandwidth(net):
 # Note: The output file should be <args.dir>/iperf_server.txt
 #       It will be used later in count_connections()
 
-def start_receiver(net):
-    pass
+#def start_receiver(net):
+#    pass
 
 # TODO: Fill in the following function to
 # Start args.nflows flows across the senders in a round-robin fashion
@@ -379,20 +383,22 @@ def start_receiver(net):
 # It will be very handy when debugging.  You are not required to
 # submit these in your final submission.
 
-def start_senders(net):
+#def start_senders(net):
     # Seconds to run iperf; keep this very high
-    seconds = 3600
-    pass
+#    seconds = 3600
+#    pass
 
 def main():
     "Create network and run Buffer Sizing experiment"
 
     start = time()
     topo = FatTreeTopo()
-    net = Mininet(topo=topo, host=CPULimitedHost, link=TCLink)
+    net = Mininet(topo=topo, host=CPULimitedHost, link=TCLink,
+	    switch=OVSKernelSwitch)
     net.start()
     dumpNodeConnections(net.hosts)
     workload = OneToOneWorkload(net)
+    CLI(net)
     net.pingAll()
 
     # TODO: Measure initial latency + bandwidth for percentages
@@ -404,8 +410,8 @@ def main():
     print workload.run()
 
     # TODO: change the interface for which queue size is adjusted
-    ret = do_sweep(iface='s0-eth1')
-    total_flows = (args.n - 1) * args.nflows
+    #ret = do_sweep(iface='s0-eth1')
+    #total_flows = (args.n - 1) * args.nflows
 
     # Store output.  It will be parsed by run.sh after the entire
     # sweep is completed.  Do not change this filename!
