@@ -5,7 +5,7 @@
 from mininet.topo import Topo
 from mininet.node import CPULimitedHost
 from mininet.link import TCLink
-from mininet.node import OVSKernelSwitch 
+from mininet.node import OVSKernelSwitch, RemoteController
 from mininet.net import Mininet
 from mininet.cli import CLI
 from mininet.log import lg
@@ -24,7 +24,7 @@ import os
 #from util.helper import stdev
 
 import mptcp_util
-from our_topo import FatTreeTopo
+from dctopo import FatTreeTopo
 from workloads import OneToOneWorkload
 
 # Number of samples to skip for reference util calibration.
@@ -71,14 +71,14 @@ parser.add_argument('--bw-host', '-B',
                     type=float,
                     action="store",
                     help="Bandwidth of host links",
-                    required=True)
+                    default=10)
 
 parser.add_argument('--bw-net', '-b',
                     dest="bw_net",
                     type=float,
                     action="store",
                     help="Bandwidth of network link",
-                    required=True)
+                    default=10)
 
 parser.add_argument('--delay',
                     dest="delay",
@@ -388,17 +388,17 @@ def verify_bandwidth(net):
 #    seconds = 3600
 #    pass
 
+
 def main():
     "Create network and run Buffer Sizing experiment"
 
     start = time()
     topo = FatTreeTopo()
-    net = Mininet(topo=topo, host=CPULimitedHost, link=TCLink,
-	    switch=OVSKernelSwitch)
+    net = Mininet(controller=RemoteController, topo=topo, host=CPULimitedHost,
+                  link=TCLink, switch=OVSKernelSwitch)
     net.start()
     dumpNodeConnections(net.hosts)
     workload = OneToOneWorkload(net)
-    CLI(net)
     net.pingAll()
 
     # TODO: Measure initial latency + bandwidth for percentages
@@ -415,8 +415,8 @@ def main():
 
     # Store output.  It will be parsed by run.sh after the entire
     # sweep is completed.  Do not change this filename!
-    output = "%d %s %.3f\n" % (total_flows, ret, ret * 1500.0)
-    open("%s/result.txt" % args.dir, "w").write(output)
+    # output = "%d %s %.3f\n" % (total_flows, ret, ret * 1500.0)
+    # open("%s/result.txt" % args.dir, "w").write(output)
 
     # Shut down iperf processes
     os.system('killall -9 ' + CUSTOM_IPERF_PATH)
@@ -425,7 +425,7 @@ def main():
     Popen("killall -9 top bwm-ng tcpdump cat mnexec", shell=True).wait()
     stop_tcpprobe()
     end = time()
-    cprint("Sweep took %.3f seconds" % (end - start), "yellow")
+    cprint("Experiment took %.3f seconds" % (end - start), "yellow")
 
 if __name__ == '__main__':
     try:
