@@ -23,9 +23,12 @@ import os
 #from util.monitor import monitor_qlen
 #from util.helper import stdev
 
-import mptcp_util
+from mptcp_util import enable_mptcp, reset
 from dctopo import FatTreeTopo
 from workloads import OneToOneWorkload
+
+# Time to run test
+SECONDS_TO_RUN = 60
 
 # Number of samples to skip for reference util calibration.
 CALIBRATION_SKIP = 10
@@ -65,104 +68,54 @@ def cprint(s, color, cr=True):
 
 # Parse arguments
 
-parser = ArgumentParser(description="Buffer sizing tests")
-parser.add_argument('--bw-host', '-B',
-                    dest="bw_host",
+parser = ArgumentParser(description="Host throughput tests")
+parser.add_argument('--bw', '-b',
+                    dest="bw",
                     type=float,
                     action="store",
-                    help="Bandwidth of host links",
+                    help="Bandwidth of links",
                     default=10)
-
-parser.add_argument('--bw-net', '-b',
-                    dest="bw_net",
-                    type=float,
-                    action="store",
-                    help="Bandwidth of network link",
-                    default=10)
-
 parser.add_argument('--delay',
                     dest="delay",
                     type=float,
                     help="Delay in milliseconds of host links",
-                    default=87)
-'''
+                    default=1)
 parser.add_argument('--dir', '-d',
                     dest="dir",
                     action="store",
                     help="Directory to store outputs",
-                    default="results",
-                    required=True)
-parser.add_argument('-n',
-                    dest="n",
+                    default="results")
+parser.add_argument('--mptcp_subflows',
+                    dest="mptcp_subflows",
                     type=int,
                     action="store",
-                    help="Number of nodes in star.  Must be >= 3",
-                    required=True)
-
-parser.add_argument('--nflows',
-                    dest="nflows",
+                    help="Number of subflows for MPTCP (1 indicates TCP)",
+                    default=1)
+parser.add_argument('--workload',
+                    dest="workload",
                     action="store",
-                    type=int,
-                    help="Number of flows per host (for TCP)",
+                    help="Type of workload",
                     required=True)
-
-parser.add_argument('--maxq',
-                    dest="maxq",
+parser.add_argument('--topology',
+                    dest="topo",
                     action="store",
-                    help="Max buffer size of network interface in packets",
-                    default=1000)
-
-parser.add_argument('--cong',
-                    dest="cong",
-                    help="Congestion control algorithm to use",
-                    default="bic")
-
-parser.add_argument('--target',
-                    dest="target",
-                    help="Target utilisation",
-                    type=float,
-                    default=TARGET_UTIL_FRACTION)
-
+                    help="Datacenter topology",
+                    required=True)
 parser.add_argument('--iperf',
                     dest="iperf",
-                    help="Path to custom iperf",
+                    action="store",
+                    help="Custom path for iperf",
                     required=True)
-'''
 
-# Expt parameters
+# Experiment parameters
 args = parser.parse_args()
+CUSTOM_IPERF_PATH = args.iperf
 
-#CUSTOM_IPERF_PATH = args.iperf
-#assert(os.path.exists(CUSTOM_IPERF_PATH))
-
-#if not os.path.exists(args.dir):
-#    os.makedirs(args.dir)
+if not os.path.exists(args.dir):
+    os.makedirs(args.dir)
 
 lg.setLogLevel('info')
 
-# Topology to be instantiated in Mininet
-'''
-class StarTopo(Topo):
-    "Star topology for Buffer Sizing experiment"
-
-    def __init__(self, n=3, cpu=None, bw_host=None, bw_net=None,
-                 delay=None, maxq=None):
-        # Add default members to class.
-        super(StarTopo, self ).__init__()
-        self.n = n
-        self.cpu = cpu
-        self.bw_host = bw_host
-        self.bw_net = bw_net
-        self.delay = delay
-        self.maxq = maxq
-        self.create_topology()
-
-    # TODO: Fill in the following function to Create the experiment
-    # topology Set appropriate values for bandwidth, delay, and queue
-    # size.
-    def create_topology(self):
-        pass
-'''
 def start_tcpprobe():
     "Install tcp_probe module and dump to file"
     os.system("rmmod tcp_probe 2>/dev/null; modprobe tcp_probe;")
@@ -388,35 +341,37 @@ def verify_bandwidth(net):
 #    seconds = 3600
 #    pass
 
+def get_topology():
+    return FatTreeTopo()
+
+def get_workload(net):
+    return OneToOneWorkload(net, args.iperf, SECONDS_TO_RUN)
 
 def main():
     "Create network and run Buffer Sizing experiment"
 
     start = time()
-    topo = FatTreeTopo()
+    topo = get_topology()
     net = Mininet(controller=RemoteController, topo=topo, host=CPULimitedHost,
                   link=TCLink, switch=OVSKernelSwitch)
     net.start()
     dumpNodeConnections(net.hosts)
-    workload = OneToOneWorkload(net)
+    workload = get_workload(net)
     net.pingAll()
 
     # TODO: Measure initial latency + bandwidth for percentages
     verify_latency(net)
     verify_bandwidth(net)
 
-    cprint("Starting experiment", "green")
+    enable_mptcp(args.mptcp_subflows)
 
-    print workload.run()
+    cprint("Starting experiment for workload %s with %i subflows" % (
+               args.workload, args.mptcp_subflows), "green")
 
-    # TODO: change the interface for which queue size is adjusted
-    #ret = do_sweep(iface='s0-eth1')
-    #total_flows = (args.n - 1) * args.nflows
+    output = workload.run()
 
-    # Store output.  It will be parsed by run.sh after the entire
-    # sweep is completed.  Do not change this filename!
-    # output = "%d %s %.3f\n" % (total_flows, ret, ret * 1500.0)
-    # open("%s/result.txt" % args.dir, "w").write(output)
+    # Write output to file result/workload/num_flows but for now, print it
+    print output
 
     # Shut down iperf processes
     os.system('killall -9 ' + CUSTOM_IPERF_PATH)
@@ -425,6 +380,7 @@ def main():
     Popen("killall -9 top bwm-ng tcpdump cat mnexec", shell=True).wait()
     stop_tcpprobe()
     end = time()
+    reset()
     cprint("Experiment took %.3f seconds" % (end - start), "yellow")
 
 if __name__ == '__main__':
@@ -435,6 +391,7 @@ if __name__ == '__main__':
         print "Caught exception.  Cleaning up..."
         print "-"*80
         import traceback
+        reset()
         traceback.print_exc()
         os.system("killall -9 top bwm-ng tcpdump cat mnexec iperf; mn -c")
 

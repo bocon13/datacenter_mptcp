@@ -9,6 +9,7 @@ from subprocess import Popen, PIPE
 from time import sleep
 import termcolor as T
 import argparse
+from mininet.log import lg
 
 def sysctl_set(key, value):
     """Issue systcl for given param to given value and check for error."""
@@ -42,3 +43,8 @@ Disables MPTCP and resets the number of ports to 1
 def reset():
     set_enabled(False)
     set_ndiffports(1)
+
+def enable_mptcp(mptcp_subflows):
+    if mptcp_subflows > 1:
+        set_enabled(True)
+        set_ndiffports(mptcp_subflows)

@@ -1,8 +1,24 @@
-# Kill any POX processes running
-for p in $(ps aux | grep 'pox.py' | awk '{print $2}')
-do
-    kill $p
-done
+#!/bin/bash
+
+# Exit on any failure
+set -e
+
+kill_pox() {
+    for p in $(ps aux | grep 'pox.py' | awk '{print $2}')
+    do
+        kill $p
+    done
+}
+
+ctrlc() {
+    killall -9 python
+    mn -c
+    exit
+}
+
+trap ctrlc SIGINT
+
+iperf=~/iperf-patched/src/iperf
 
 # Start POX controller with ECMP routing on FatTree-4
 cd ~
@@ -10,10 +26,18 @@ screen -d -m python ~/pox/pox.py riplpox.riplpox --topo=ft,4 --routing=hashed --
 
 # Run Mininet tests
 cd mininet_mptcp
-python mptcp_test.py
+for workload in one_to_one
+do
+    for num_subflows in {1..8}
+    do
+        python mptcp_test.py --bw 10 \
+            --delay 1 \
+            --mptcp_subflows $num_subflows \
+            --workload $workload \
+            --topology ft4 \
+            --iperf $iperf
+    done
+done
 
 # Kill POX processes
-for p in $(ps aux | grep 'pox.py' | awk '{print $2}')
-do
-    kill $p
-done
+kill_pox
