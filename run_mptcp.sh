@@ -18,11 +18,11 @@ ctrlc() {
 
 trap ctrlc SIGINT
 
-iperf=~/iperf-patched/src/iperf
+iperf=iperf
 
 # Start POX controller with ECMP routing on FatTree-4
 cd ~
-screen -d -m python ~/pox/pox.py riplpox.riplpox --topo=ft,4 --routing=hashed --mode=reactive
+screen -d -m python ~/pox/pox.py riplpox.riplpox --topo=ft,4 --routing=hashed --mode=proactive
 
 # Run Mininet tests
 cd ~/mininet_mptcp

@@ -101,14 +101,15 @@ def stop_tcpprobe():
     os.system("killall -9 cat; rmmod tcp_probe &>/dev/null;")
 
 def get_max_throughput(net):
+    print "Finding max throughput..."
     seconds = 10
     server, client = net.hosts[0], net.hosts[1]
-    server.sendCmd("%s -s -p %s" %
+    server.popen("%s -s -p %s" %
                 (CUSTOM_IPERF_PATH, 5001), shell=True)
     client.sendCmd("%s -c %s -p %s -t %d -yc" %
-                   (CUSTOM_IPERF_PATH, server.IP(), 5001, seconds),
-                   shell=True)
-    throughput = client.waitOutput().split(',')[-1]
+                   (CUSTOM_IPERF_PATH, server.IP(), 5001, seconds))
+    throughput = client.waitOutput()
+    print "Max throughput is %s bytes/second" % throughput
     os.system('killall -9 ' + CUSTOM_IPERF_PATH)
     return throughput
 
@@ -116,7 +117,7 @@ def get_topology():
     return FatTreeTopo()
 
 def get_workload(net):
-    return OneToOneWorkload(net, args.iperf, SECONDS_TO_RUN)
+    return OneToOneWorkload(net, args.iperf, DIR, SECONDS_TO_RUN)
 
 def print_to_file(max_throughput, output):
     filename = os.path.join(DIR, nflows)
@@ -138,7 +139,7 @@ def main():
 
     max_throughput = get_max_throughput(net)
 
-    enable_mptcp(args.mptcp_subflows)
+    enable_mptcp(args.nflows)
 
     cprint("Starting experiment for workload %s with %i subflows" % (
                args.workload, args.nflows), "green")

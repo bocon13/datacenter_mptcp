@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 
 from random import choice, shuffle
+from subprocess import Popen, PIPE
+from time import sleep
+import sys
 
 class OneToOneWorkload():
     def __init__(self, net, iperf, dir, seconds):
@@ -14,7 +17,7 @@ class OneToOneWorkload():
         self.create_mappings(list(group1), list(group2))
         self.create_mappings(group2, group1)
 
-    def create_mappings(self, group1, group2)
+    def create_mappings(self, group1, group2):
         while group1:
             server = choice(group1)
             group1.remove(server)
@@ -22,7 +25,7 @@ class OneToOneWorkload():
             group2.remove(client)
             self.mappings.append((server, client))
 
-    def count_connections():
+    def count_connections(self):
         "Count current connections in iperf output file"
         out = self.dir + "/iperf_server.txt"
         lines = Popen("grep connected %s | wc -l" % out,
@@ -32,9 +35,10 @@ class OneToOneWorkload():
     def verify_connections(self):
         succeeded = 0
         wait_time = 300
+        nflows = len(self.mappings)
         while wait_time > 0 and succeeded != nflows:
             wait_time -= 1
-            succeeded = count_connections()
+            succeeded = self.count_connections()
             print 'Connections %d/%d succeeded\r' % (succeeded, nflows),
             sys.stdout.flush()
             sleep(1)
@@ -46,8 +50,8 @@ class OneToOneWorkload():
     def run(self):
         for mapping in self.mappings:
             server, client = mapping
-            server.sendCmd("%s -s -p %s > %s/iperf_server.txt" %
-                        (self.iperf, 5001, self.dir))
+            server.popen("%s -s -p %s > %s/iperf_server.txt" %
+                        (self.iperf, 5001, self.dir), shell=True)
             client.sendCmd("%s -c %s -p %s -t %d -yc" %
                           (self.iperf, server.IP(), 5001, self.seconds))
 
