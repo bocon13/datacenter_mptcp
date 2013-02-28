@@ -30,32 +30,6 @@ from workloads import OneToOneWorkload
 # Time to run test
 SECONDS_TO_RUN = 60
 
-# Number of samples to skip for reference util calibration.
-CALIBRATION_SKIP = 10
-
-# Number of samples to grab for reference util calibration.
-CALIBRATION_SAMPLES = 30
-
-# Set the fraction of the link utilization that the measurement must exceed
-# to be considered as having enough buffering.
-TARGET_UTIL_FRACTION = 0.98
-
-# Fraction of input bandwidth required to begin the experiment.
-# At exactly 100%, the experiment may take awhile to start, or never start,
-# because it effectively requires waiting for a measurement or link speed
-# limiting error.
-START_BW_FRACTION = 0.9
-
-# Number of samples to take in get_rates() before returning.
-NSAMPLES = 3
-
-# Time to wait between samples, in seconds, as a float.
-SAMPLE_PERIOD_SEC = 1.0
-
-# Time to wait for first sample, in seconds, as a float.
-SAMPLE_WAIT_SEC = 3.0
-
-
 def cprint(s, color, cr=True):
     """Print in color
        s: string to print
@@ -85,8 +59,8 @@ parser.add_argument('--dir', '-d',
                     action="store",
                     help="Directory to store outputs",
                     default="results")
-parser.add_argument('--mptcp_subflows',
-                    dest="mptcp_subflows",
+parser.add_argument('--nflows',
+                    dest="nflows",
                     type=int,
                     action="store",
                     help="Number of subflows for MPTCP (1 indicates TCP)",
@@ -110,9 +84,10 @@ parser.add_argument('--iperf',
 # Experiment parameters
 args = parser.parse_args()
 CUSTOM_IPERF_PATH = args.iperf
+DIR = os.path.join(args.dir, args.topo, args.workload)
 
-if not os.path.exists(args.dir):
-    os.makedirs(args.dir)
+if not os.path.exists(DIR):
+    os.makedirs(DIR)
 
 lg.setLogLevel('info')
 
@@ -125,227 +100,29 @@ def start_tcpprobe():
 def stop_tcpprobe():
     os.system("killall -9 cat; rmmod tcp_probe &>/dev/null;")
 
-def count_connections():
-    "Count current connections in iperf output file"
-    out = args.dir + "/iperf_server.txt"
-    lines = Popen("grep connected %s | wc -l" % out,
-                  shell=True, stdout=PIPE).communicate()[0]
-    return int(lines)
-
-def set_q(iface, q):
-    "Change queue size limit of interface"
-    cmd = ("tc qdisc change dev %s parent 1:1 "
-           "handle 10: netem limit %s" % (iface, q))
-    #os.system(cmd)
-    subprocess.check_output(cmd, shell=True)
-
-def set_speed(iface, spd):
-    "Change htb maximum rate for interface"
-    cmd = ("tc class change dev %s parent 1:0 classid 1:1 "
-           "htb rate %s burst 15k" % (iface, spd))
-    os.system(cmd)
-
-def get_txbytes(iface):
-    f = open('/proc/net/dev', 'r')
-    lines = f.readlines()
-    for line in lines:
-        if iface in line:
-            break
-    f.close()
-    if not line:
-        raise Exception("could not find iface %s in /proc/net/dev:%s" %
-                        (iface, lines))
-    # Extract TX bytes from:
-    #Inter-|   Receive                                                |  Transmit
-    # face |bytes    packets errs drop fifo frame compressed multicast|bytes    packets errs drop fifo colls carrier compressed
-    # lo: 6175728   53444    0    0    0     0          0         0  6175728   53444    0    0    0     0       0          0
-    return float(line.split()[9])
-
-def get_rates(iface, nsamples=NSAMPLES, period=SAMPLE_PERIOD_SEC,
-              wait=SAMPLE_WAIT_SEC):
-    """Returns the interface @iface's current utilization in Mb/s.  It
-    returns @nsamples samples, and each sample is the average
-    utilization measured over @period time.  Before measuring it waits
-    for @wait seconds to 'warm up'."""
-    # Returning nsamples requires one extra to start the timer.
-    nsamples += 1
-    last_time = 0
-    last_txbytes = 0
-    ret = []
-    sleep(wait)
-    while nsamples:
-        nsamples -= 1
-        txbytes = get_txbytes(iface)
-        now = time()
-        elapsed = now - last_time
-        #if last_time:
-        #    print "elapsed: %0.4f" % (now - last_time)
-        last_time = now
-        # Get rate in Mbps; correct for elapsed time.
-        rate = (txbytes - last_txbytes) * 8.0 / 1e6 / elapsed
-        if last_txbytes != 0:
-            # Wait for 1 second sample
-            ret.append(rate)
-        last_txbytes = txbytes
-        print '.',
-        sys.stdout.flush()
-        sleep(period)
-    return ret
-
-def avg(s):
-    "Compute average of list or string of values"
-    if ',' in s:
-        lst = [float(f) for f in s.split(',')]
-    elif type(s) == str:
-        lst = [float(s)]
-    elif type(s) == list:
-        lst = s
-    return sum(lst)/len(lst)
-
-def median(l):
-    "Compute median from an unsorted list of values"
-    s = sorted(l)
-    if len(s) % 2 == 1:
-        return s[(len(l) + 1) / 2 - 1]
-    else:
-        lower = s[len(l) / 2 - 1]
-        upper = s[len(l) / 2]
-        return float(lower + upper) / 2
-
-def format_floats(lst):
-    "Format list of floats to three decimal places"
-    return ', '.join(['%.3f' % f for f in lst])
-
-def ok(fraction):
-    "Fraction is OK if it is >= args.target"
-    return fraction >= args.target
-
-def format_fraction(fraction):
-    "Format and colorize fraction"
-    if ok(fraction):
-        return T.colored('%.3f' % fraction, 'green')
-    return T.colored('%.3f' % fraction, 'red', attrs=["bold"])
-
-def do_sweep(iface):
-    """Sweep queue length until we hit target utilization.
-       We assume a monotonic relationship and use a binary
-       search to find a value that yields the desired result"""
-
-    bdp = args.bw_net * 2 * args.delay * 1000.0 / 8.0 / 1500.0
-    nflows = args.nflows * (args.n - 1)
-    min_q, max_q = 1, int(bdp)
-
-    # Set a higher speed on the bottleneck link in the beginning so
-    # flows quickly connect
-    set_speed(iface, "2Gbit")
-
-    succeeded = 0
-    wait_time = 300
-    while wait_time > 0 and succeeded != nflows:
-        wait_time -= 1
-        succeeded = count_connections()
-        print 'Connections %d/%d succeeded\r' % (succeeded, nflows),
-        sys.stdout.flush()
-        sleep(1)
-
-    monitor = Process(target=monitor_qlen,
-                      args=(iface, 0.01, '%s/qlen_%s.txt' %
-                            (args.dir, iface)))
-    monitor.start()
-
-    if succeeded != nflows:
-        print 'Giving up'
-        return -1
-
-    # TODO: Set the speed back to the bottleneck link speed.
-    set_speed(iface, "%.2fMbit" % args.bw_net)
-    print "\nSetting q=%d " % max_q,
-    sys.stdout.flush()
-    set_q(iface, max_q)
-
-    # Wait till link is 100% utilised and train
-    reference_rate = 0.0
-    while reference_rate <= args.bw_net * START_BW_FRACTION:
-        rates = get_rates(iface, nsamples=CALIBRATION_SAMPLES+CALIBRATION_SKIP)
-        print "measured calibration rates: %s" % rates
-        # Ignore first N; need to ramp up to full speed.
-        rates = rates[CALIBRATION_SKIP:]
-        reference_rate = median(rates)
-        ru_max = max(rates)
-        ru_stdev = stdev(rates)
-        cprint ("Reference rate median: %.3f max: %.3f stdev: %.3f" %
-                (reference_rate, ru_max, ru_stdev), 'blue')
-        sys.stdout.flush()
-
-    while abs(min_q - max_q) >= 2:
-        mid = (min_q + max_q) / 2
-        print "Trying q=%d  [%d,%d] " % (mid, min_q, max_q),
-        sys.stdout.flush()
-
-        # TODO: Binary search over queue sizes.
-        # (1) Check if a queue size of "mid" achieves required utilization
-        #     based on the median value of the measured rate samples.
-        # (2) Change values of max_q and min_q accordingly
-        #     to continue with the binary search
-
-        # You may use the helper functions set_q(),
-        # get_rates(), avg(), median() and ok()
-
-        # Note: this do_sweep function does a bunch of setup, so do
-        # not recursively call do_sweep to do binary search.
-
-    monitor.terminate()
-    print "*** Minq for target: %d" % max_q
-    return max_q
-
-# TODO: Fill in the following function to verify the latency
-# settings of your topology
-
-def verify_latency(net):
-    "(Incomplete) verify link latency"
-    pass
-
-# TODO: Fill in the following function to verify the bandwidth
-# settings of your topology
-
-def verify_bandwidth(net):
-    "(Incomplete) verify link bandwidth"
-    pass
-
-# TODO: Fill in the following function to
-# Start iperf on the receiver node
-# Hint: use getNodeByName to get a handle on the sender node
-# Hint: iperf command to start the receiver:
-#       '%s -s -p %s > %s/iperf_server.txt' %
-#        (CUSTOM_IPERF_PATH, 5001, args.dir)
-# Note: The output file should be <args.dir>/iperf_server.txt
-#       It will be used later in count_connections()
-
-#def start_receiver(net):
-#    pass
-
-# TODO: Fill in the following function to
-# Start args.nflows flows across the senders in a round-robin fashion
-# Hint: use getNodeByName to get a handle on the sender (A or B in the
-# figure) and receiver node (C in the figure).
-# Hint: iperf command to start flow:
-#       '%s -c %s -p %s -t %d -i 1 -yc -Z %s > %s/%s' % (
-#           CUSTOM_IPERF_PATH, server.IP(), 5001, seconds, args.cong, args.dir, output_file)
-# It is a good practice to store output files in a place specific to the
-# experiment, where you can easily access, e.g., under args.dir.
-# It will be very handy when debugging.  You are not required to
-# submit these in your final submission.
-
-#def start_senders(net):
-    # Seconds to run iperf; keep this very high
-#    seconds = 3600
-#    pass
+def get_max_throughput(net):
+    seconds = 10
+    server, client = net.hosts[0], net.hosts[1]
+    server.sendCmd("%s -s -p %s" %
+                (CUSTOM_IPERF_PATH, 5001), shell=True)
+    client.sendCmd("%s -c %s -p %s -t %d -yc" %
+                   (CUSTOM_IPERF_PATH, server.IP(), 5001, seconds),
+                   shell=True)
+    throughput = client.waitOutput().split(',')[-1]
+    os.system('killall -9 ' + CUSTOM_IPERF_PATH)
+    return throughput
 
 def get_topology():
     return FatTreeTopo()
 
 def get_workload(net):
     return OneToOneWorkload(net, args.iperf, SECONDS_TO_RUN)
+
+def print_to_file(max_throughput, output):
+    filename = os.path.join(DIR, nflows)
+    f = open(filename)
+    f.write("%s\n%s\n" % (max_throughput, output.join(',')))
+    f.close()
 
 def main():
     "Create network and run Buffer Sizing experiment"
@@ -359,26 +136,24 @@ def main():
     workload = get_workload(net)
     net.pingAll()
 
-    # TODO: Measure initial latency + bandwidth for percentages
-    verify_latency(net)
-    verify_bandwidth(net)
+    max_throughput = get_max_throughput(net)
 
     enable_mptcp(args.mptcp_subflows)
 
     cprint("Starting experiment for workload %s with %i subflows" % (
-               args.workload, args.mptcp_subflows), "green")
+               args.workload, args.nflows), "green")
 
     output = workload.run()
-
-    # Write output to file result/workload/num_flows but for now, print it
-    print output
+    if output:
+        print_to_file(max_throughput, output)
+    else:
+        print "Initializing iperf connections failed"
 
     # Shut down iperf processes
     os.system('killall -9 ' + CUSTOM_IPERF_PATH)
 
     net.stop()
     Popen("killall -9 top bwm-ng tcpdump cat mnexec", shell=True).wait()
-    stop_tcpprobe()
     end = time()
     reset()
     cprint("Experiment took %.3f seconds" % (end - start), "yellow")

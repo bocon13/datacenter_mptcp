@@ -25,14 +25,14 @@ cd ~
 screen -d -m python ~/pox/pox.py riplpox.riplpox --topo=ft,4 --routing=hashed --mode=reactive
 
 # Run Mininet tests
-cd mininet_mptcp
+cd ~/mininet_mptcp
 for workload in one_to_one
 do
     for num_subflows in {1..8}
     do
-        python mptcp_test.py --bw 10 \
+        python mptcp_test.py --bw 100 \
             --delay 1 \
-            --mptcp_subflows $num_subflows \
+            --nflows $num_subflows \
             --workload $workload \
             --topology ft4 \
             --iperf $iperf
