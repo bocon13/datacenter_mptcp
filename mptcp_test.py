@@ -96,7 +96,7 @@ def get_max_throughput(net, dir):
     server, client = net.hosts[0], net.hosts[1]
     server.popen("%s -s -p %s" %
                 (CUSTOM_IPERF_PATH, 5001), shell=True)
-    proc = client.popen("%s -c %s -p %s -t %d -yc > %s/max_throughput.txt" %
+    proc = client.popen("%s -c %s -p %s -t %d -yc -i 10 > %s/max_throughput.txt" %
                    (CUSTOM_IPERF_PATH, server.IP(), 5001, seconds, dir), shell=True)
     
     proc.communicate()

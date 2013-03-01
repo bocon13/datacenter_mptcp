@@ -52,7 +52,7 @@ for f in args.files:
   output = []
   for line in open(f).xreadlines():
     output.append(line)
-  val = output[-1].rstrip().split(',')[-1]
+  val = output[-2].rstrip().split(',')[-1]
   print flow, val
 
   if f.find('client') >= 0:
