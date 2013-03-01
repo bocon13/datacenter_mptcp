@@ -92,7 +92,7 @@ def stop_tcpprobe():
 
 def get_max_throughput(net, dir):
     print "Finding max throughput..."
-    seconds = 20
+    seconds = SECONDS_TO_RUN
     server, client = net.hosts[0], net.hosts[1]
     server.popen("%s -s -p %s" %
                 (CUSTOM_IPERF_PATH, 5001), shell=True)
@@ -122,6 +122,9 @@ def main():
     net.pingAll()
 
     top_dir = os.path.join(args.dir, args.topo, args.workload)
+    if not os.path.exists(top_dir):
+        os.makedirs(top_dir)
+    get_max_throughput(net, top_dir)
 
     for nflows in range(1, 9):
         cwd = os.path.join(top_dir, "flows%d" % nflows)
@@ -129,7 +132,6 @@ def main():
         if not os.path.exists(cwd):
             os.makedirs(cwd)
         enable_mptcp(nflows)
-        get_max_throughput(net, cwd)
 
         cprint("Starting experiment for workload %s with %i subflows" % (
                 args.workload, nflows), "green")

@@ -11,7 +11,7 @@ ctrlc() {
 
 trap ctrlc SIGINT
 
-iperf=iperf
+iperf=~/iperf-patched/src/iperf
 
 # Start POX controller with ECMP routing on FatTree-4
 cd ~
