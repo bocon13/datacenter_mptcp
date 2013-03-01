@@ -28,7 +28,7 @@ from dctopo import FatTreeTopo
 from workloads import OneToOneWorkload
 
 # Time to run test
-SECONDS_TO_RUN = 10
+SECONDS_TO_RUN = 60
 
 def cprint(s, color, cr=True):
     """Print in color
@@ -92,12 +92,12 @@ def stop_tcpprobe():
 
 def get_max_throughput(net, dir):
     print "Finding max throughput..."
-    seconds = 10
+    seconds = 20
     server, client = net.hosts[0], net.hosts[1]
     server.popen("%s -s -p %s" %
                 (CUSTOM_IPERF_PATH, 5001), shell=True)
     client.popen("%s -c %s -p %s -t %d -yc > %s/max_throughput.txt" %
-                   (CUSTOM_IPERF_PATH, server.IP(), 5001, seconds, dir))
+                   (CUSTOM_IPERF_PATH, server.IP(), 5001, seconds, dir), shell=True)
     
     epsilon = 3
     sleep(seconds + epsilon)
@@ -121,10 +121,10 @@ def main():
     workload = get_workload(net)
     net.pingAll()
 
-    cwd = os.path.join(args.dir, args.topo, args.workload)
+    top_dir = os.path.join(args.dir, args.topo, args.workload)
 
     for nflows in range(1, 9):
-        cwd = os.path.join(cwd, "flows%d" % nflows)
+        cwd = os.path.join(top_dir, "flows%d" % nflows)
 
         if not os.path.exists(cwd):
             os.makedirs(cwd)
