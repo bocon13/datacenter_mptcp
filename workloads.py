@@ -6,6 +6,14 @@ from mininet.util import pmonitor
 from time import sleep
 import sys
 
+def progress(t):
+    while t > 0:
+        print T.colored('  %3d seconds left       \r' % (t), 'cyan'),
+        t -= 1
+        sys.stdout.flush()
+        sleep(1)
+    print '\r\n'
+
 class OneToOneWorkload():
     def __init__(self, net, iperf, seconds):
         self.iperf = iperf
@@ -30,12 +38,16 @@ class OneToOneWorkload():
             server = mapping[0]
             server.popen("%s -s -p %s" %
                         (self.iperf, 5001), shell=True)
+        procs = []
         for mapping in self.mappings:
             server, client = mapping
-            client.popen("%s -c %s -p %s -t %d -yc > %s/client_iperf-%s.txt" %
+            procs.append(client.popen("%s -c %s -p %s -t %d -yc > %s/client_iperf-%s.txt" %
                           (self.iperf, server.IP(), 5001, self.seconds, dir,
                            client.name),
-                           shell=True)
+                           shell=True))
 
-        epsilon = 3
-        sleep(self.seconds + epsilon)
+        progress(self.seconds + 1)
+        # epsilon = 10
+        # sleep(self.seconds + epsilon)
+        for proc in procs:
+            proc.communicate()
