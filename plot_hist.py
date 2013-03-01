@@ -47,14 +47,18 @@ throughput = defaultdict(list)
 max_throughput = 0 
 for f in args.files:
   print f
+
   flow = f[f.find('flows') + len('flows')]
-  for l in open(f).xreadlines():
-    val = l.rstrip().split(',')[-1]
-    print flow, val
-    if f.find('client') >= 0:
-      throughput[flow].append(float(val))
-    else:
-      max_throughput = float(val)
+  output = []
+  for line in open(f).xreadlines():
+    output.append(line)
+  val = output[-1].rstrip().split(',')[-1]
+  print flow, val
+
+  if f.find('client') >= 0:
+    throughput[flow].append(float(val))
+  else:
+    max_throughput = float(val)
     
 print throughput 
 
@@ -63,7 +67,7 @@ tcp_points = []
 mptcp_points = []
 for i in sorted(throughput.keys()):
   print i 
-  vals = [ x / max_throughput  for x in throughput[i] ] 
+  vals = [ 100 * x / max_throughput  for x in throughput[i] ] 
   avgThroughput.append(avg(vals))
   if i == '1':
     tcp_points = sorted(vals)
@@ -87,32 +91,32 @@ print max_throughput
 # set up plot
 m.rc('figure', figsize=(16, 6))
 fig = plt.figure()
-
+title = 'Fat Tree (k=4), One-to-one workload'
 # plot rank of flow
 axPlot = fig.add_subplot(1, 2, 2)
 #axPlot.plot(first(cwnd_time), second(cwnd_time), lw=2, label="$MPTCP$")
 #axPlot.plot(first(cwnd_time), second(cwnd_time), lw=2, label="$x$")
 xaxis = range(len(mptcp_points))
-axPlot.plot(xaxis, mptcp_points, lw=2, label="$MPTCP$")
+axPlot.plot(xaxis, mptcp_points, lw=2, label="MPTCP, 8 subflows")
 xaxis = range(len(tcp_points))
 axPlot.plot(xaxis, tcp_points, lw=2, label="TCP")
 #axPlot.grid(True)
-axPlot.legend(loc='upper left')
-axPlot.set_xlabel("No. of MPTCP Subflows")
+axPlot.legend(loc='lower right')
+axPlot.set_xlabel("Rank of Flow")
 axPlot.set_ylabel("Throughput (% of optimal)")
-axPlot.set_title("title 1")
+axPlot.set_title( title )
 
 # plot histogram
 N = 8
 labels = ('TCP', '2', '3', '4', '5', '6', '7', '8')
 xaxis = np.arange(N)  # the x locations for the groups
-width = 0.8 
+width = 0.7 
 xoffset = 0.1
 axHist = fig.add_subplot(1, 2, 1)
 axHist.bar(xaxis + xoffset, avgThroughput, width, color='k') #, yerr=menStd)
 axHist.set_xlabel("No. of MPTCP Subflows")
 axHist.set_ylabel("Throughput (% of optimal)")
-axHist.set_title("title 2")
+axHist.set_title( title )
 axHist.set_xticks(xaxis + width/2 + xoffset)
 axHist.set_xticklabels( labels )
 
