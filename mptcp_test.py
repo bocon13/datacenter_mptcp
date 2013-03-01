@@ -94,6 +94,7 @@ def get_max_throughput(net, dir):
     print "Finding max throughput..."
     seconds = 20
     server, client = net.hosts[0], net.hosts[1]
+    reset()
     server.popen("%s -s -p %s" %
                 (CUSTOM_IPERF_PATH, 5001), shell=True)
     proc = client.popen("%s -c %s -p %s -t %d -yc -i 10 > %s/max_throughput.txt" %
@@ -103,7 +104,7 @@ def get_max_throughput(net, dir):
     os.system('killall -9 ' + CUSTOM_IPERF_PATH)
 
 def get_topology():
-    return FatTreeTopo()
+    return FatTreeTopo(k=4)
 
 def get_workload(net):
     return OneToOneWorkload(net, args.iperf, SECONDS_TO_RUN)
