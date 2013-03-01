@@ -3,7 +3,7 @@
 "CS244 Assignment 2: Buffer Sizing"
 
 from mininet.topo import Topo
-from mininet.node import CPULimitedHost
+from mininet.node import Host
 from mininet.link import TCLink
 from mininet.node import OVSKernelSwitch, RemoteController
 from mininet.net import Mininet
@@ -28,7 +28,7 @@ from dctopo import FatTreeTopo
 from workloads import OneToOneWorkload
 
 # Time to run test
-SECONDS_TO_RUN = 60
+SECONDS_TO_RUN = 10
 
 def cprint(s, color, cr=True):
     """Print in color
@@ -59,12 +59,6 @@ parser.add_argument('--dir', '-d',
                     action="store",
                     help="Directory to store outputs",
                     default="results")
-parser.add_argument('--nflows',
-                    dest="nflows",
-                    type=int,
-                    action="store",
-                    help="Number of subflows for MPTCP (1 indicates TCP)",
-                    default=1)
 parser.add_argument('--workload',
                     dest="workload",
                     action="store",
@@ -84,10 +78,6 @@ parser.add_argument('--iperf',
 # Experiment parameters
 args = parser.parse_args()
 CUSTOM_IPERF_PATH = args.iperf
-DIR = os.path.join(args.dir, args.topo, args.workload)
-
-if not os.path.exists(DIR):
-    os.makedirs(DIR)
 
 lg.setLogLevel('info')
 
@@ -100,58 +90,54 @@ def start_tcpprobe():
 def stop_tcpprobe():
     os.system("killall -9 cat; rmmod tcp_probe &>/dev/null;")
 
-def get_max_throughput(net):
+def get_max_throughput(net, dir):
     print "Finding max throughput..."
     seconds = 10
     server, client = net.hosts[0], net.hosts[1]
     server.popen("%s -s -p %s" %
                 (CUSTOM_IPERF_PATH, 5001), shell=True)
-    client.sendCmd("%s -c %s -p %s -t %d -yc" %
-                   (CUSTOM_IPERF_PATH, server.IP(), 5001, seconds))
-    throughput = client.waitOutput()
-    print "Max throughput is %s bytes/second" % throughput
+    client.popen("%s -c %s -p %s -t %d -yc > %s/max_throughput.txt" %
+                   (CUSTOM_IPERF_PATH, server.IP(), 5001, seconds, dir))
+    
+    epsilon = 3
+    sleep(seconds + epsilon)
     os.system('killall -9 ' + CUSTOM_IPERF_PATH)
-    return throughput
 
 def get_topology():
     return FatTreeTopo()
 
 def get_workload(net):
-    return OneToOneWorkload(net, args.iperf, DIR, SECONDS_TO_RUN)
-
-def print_to_file(max_throughput, output):
-    filename = os.path.join(DIR, nflows)
-    f = open(filename)
-    f.write("%s\n%s\n" % (max_throughput, output.join(',')))
-    f.close()
+    return OneToOneWorkload(net, args.iperf, SECONDS_TO_RUN)
 
 def main():
     "Create network and run Buffer Sizing experiment"
 
     start = time()
     topo = get_topology()
-    net = Mininet(controller=RemoteController, topo=topo, host=CPULimitedHost,
+    net = Mininet(controller=RemoteController, topo=topo, host=Host,
                   link=TCLink, switch=OVSKernelSwitch)
     net.start()
     dumpNodeConnections(net.hosts)
     workload = get_workload(net)
     net.pingAll()
 
-    max_throughput = get_max_throughput(net)
+    cwd = os.path.join(args.dir, args.topo, args.workload)
 
-    enable_mptcp(args.nflows)
+    for nflows in range(1, 9):
+        cwd = os.path.join(cwd, "flows%d" % nflows)
 
-    cprint("Starting experiment for workload %s with %i subflows" % (
-               args.workload, args.nflows), "green")
+        if not os.path.exists(cwd):
+            os.makedirs(cwd)
+        enable_mptcp(nflows)
+        get_max_throughput(net, cwd)
 
-    output = workload.run()
-    if output:
-        print_to_file(max_throughput, output)
-    else:
-        print "Initializing iperf connections failed"
+        cprint("Starting experiment for workload %s with %i subflows" % (
+                args.workload, nflows), "green")
 
-    # Shut down iperf processes
-    os.system('killall -9 ' + CUSTOM_IPERF_PATH)
+        workload.run(cwd)
+
+        # Shut down iperf processes
+        os.system('killall -9 ' + CUSTOM_IPERF_PATH)
 
     net.stop()
     Popen("killall -9 top bwm-ng tcpdump cat mnexec", shell=True).wait()

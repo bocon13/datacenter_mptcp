@@ -2,13 +2,13 @@
 
 from random import choice, shuffle
 from subprocess import Popen, PIPE
+from mininet.util import pmonitor
 from time import sleep
 import sys
 
 class OneToOneWorkload():
-    def __init__(self, net, iperf, dir, seconds):
+    def __init__(self, net, iperf, seconds):
         self.iperf = iperf
-        self.dir = dir
         self.seconds = seconds
         self.mappings = []
         hosts = list(net.hosts)
@@ -25,41 +25,17 @@ class OneToOneWorkload():
             group2.remove(client)
             self.mappings.append((server, client))
 
-    def count_connections(self):
-        "Count current connections in iperf output file"
-        out = self.dir + "/iperf_server.txt"
-        lines = Popen("grep connected %s | wc -l" % out,
-                      shell=True, stdout=PIPE).communicate()[0]
-        return int(lines)
-
-    def verify_connections(self):
-        succeeded = 0
-        wait_time = 300
-        nflows = len(self.mappings)
-        while wait_time > 0 and succeeded != nflows:
-            wait_time -= 1
-            succeeded = self.count_connections()
-            print 'Connections %d/%d succeeded\r' % (succeeded, nflows),
-            sys.stdout.flush()
-            sleep(1)
-        if succeeded != nflows:
-            print 'Giving up'
-            return False
-        return True
-
-    def run(self):
+    def run(self, dir):
+        for mapping in self.mappings:
+            server = mapping[0]
+            server.popen("%s -s -p %s" %
+                        (self.iperf, 5001), shell=True)
         for mapping in self.mappings:
             server, client = mapping
-            server.popen("%s -s -p %s > %s/iperf_server.txt" %
-                        (self.iperf, 5001, self.dir), shell=True)
-            client.sendCmd("%s -c %s -p %s -t %d -yc" %
-                          (self.iperf, server.IP(), 5001, self.seconds))
+            client.popen("%s -c %s -p %s -t %d -yc > %s/client_iperf-%s.txt" %
+                          (self.iperf, server.IP(), 5001, self.seconds, dir,
+                           client.name),
+                           shell=True)
 
-        if not self.verify_connections():
-            return None
-
-        results = []
-        for mapping in self.mappings:
-            results.append(mapping[1].waitOutput().split(',')[-1])
-            # results is list of host throughputs
-        return results
+        epsilon = 3
+        sleep(self.seconds + epsilon)
