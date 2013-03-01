@@ -9,7 +9,7 @@ from mininet.node import OVSKernelSwitch, RemoteController
 from mininet.net import Mininet
 from mininet.cli import CLI
 from mininet.log import lg
-from mininet.util import dumpNodeConnections
+from mininet.util import dumpNodeConnections, custom
 
 import subprocess
 from subprocess import Popen, PIPE
@@ -92,15 +92,14 @@ def stop_tcpprobe():
 
 def get_max_throughput(net, dir):
     print "Finding max throughput..."
-    seconds = SECONDS_TO_RUN
+    seconds = 20
     server, client = net.hosts[0], net.hosts[1]
     server.popen("%s -s -p %s" %
                 (CUSTOM_IPERF_PATH, 5001), shell=True)
-    client.popen("%s -c %s -p %s -t %d -yc > %s/max_throughput.txt" %
+    proc = client.popen("%s -c %s -p %s -t %d -yc > %s/max_throughput.txt" %
                    (CUSTOM_IPERF_PATH, server.IP(), 5001, seconds, dir), shell=True)
     
-    epsilon = 3
-    sleep(seconds + epsilon)
+    proc.communicate()
     os.system('killall -9 ' + CUSTOM_IPERF_PATH)
 
 def get_topology():
@@ -114,8 +113,9 @@ def main():
 
     start = time()
     topo = get_topology()
+    link = custom(TCLink, bw=args.bw, delay=args.delay)
     net = Mininet(controller=RemoteController, topo=topo, host=Host,
-                  link=TCLink, switch=OVSKernelSwitch)
+                  link=link, switch=OVSKernelSwitch)
     net.start()
     dumpNodeConnections(net.hosts)
     workload = get_workload(net)
