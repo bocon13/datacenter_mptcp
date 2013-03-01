@@ -9,7 +9,7 @@ from mininet.node import OVSKernelSwitch, RemoteController
 from mininet.net import Mininet
 from mininet.cli import CLI
 from mininet.log import lg
-from mininet.util import dumpNodeConnections
+from mininet.util import dumpNodeConnections, custom
 
 import subprocess
 from subprocess import Popen, PIPE
@@ -114,8 +114,9 @@ def main():
 
     start = time()
     topo = get_topology()
+    link = custom(TCLink, bw=args.bw, delay=args.delay)
     net = Mininet(controller=RemoteController, topo=topo, host=Host,
-                  link=TCLink, switch=OVSKernelSwitch)
+                  link=link, switch=OVSKernelSwitch)
     net.start()
     dumpNodeConnections(net.hosts)
     workload = get_workload(net)
