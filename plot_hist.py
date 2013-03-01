@@ -110,8 +110,8 @@ axPlot.set_title( title )
 N = 8
 labels = ('TCP', '2', '3', '4', '5', '6', '7', '8')
 xaxis = np.arange(N)  # the x locations for the groups
-width = 0.7 
-xoffset = 0.1
+width = 0.5 
+xoffset = (1 - width) / 2
 axHist = fig.add_subplot(1, 2, 1)
 axHist.bar(xaxis + xoffset, avgThroughput, width, color='k') #, yerr=menStd)
 axHist.set_xlabel("No. of MPTCP Subflows")
