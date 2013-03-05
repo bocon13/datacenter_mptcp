@@ -38,14 +38,13 @@ class OneToOneWorkload():
         for mapping in self.mappings:
             server = mapping[0]
             server.popen("%s -s -p %s" %
-                        (self.iperf, 5001), shell=True)
+                         (self.iperf, 5001), shell=True)
         procs = []
         for mapping in self.mappings:
             server, client = mapping
             procs.append(client.popen("%s -c %s -p %s -t %d -yc -i 10 > %s/client_iperf-%s.txt" %
-                          (self.iperf, server.IP(), 5001, self.seconds, dir,
-                           client.name),
-                           shell=True))
+                                      (self.iperf, server.IP(), 5001, self.seconds, dir, client.name),
+                                      shell=True))
 
         progress(self.seconds + 5) # 5 second buffer to tear down connections and write output
         for proc in procs:

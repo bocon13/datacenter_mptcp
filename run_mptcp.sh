@@ -11,7 +11,7 @@ ctrlc() {
 
 trap ctrlc SIGINT
 
-k=8
+k=4
 iperf=~/iperf-patched/src/iperf
 
 # Start POX controller with ECMP routing on FatTree-4
@@ -22,7 +22,7 @@ python ~/pox/pox.py --no-cli riplpox.riplpox --topo=ft,$k --routing=hashed --mod
 cd ~/mininet_mptcp
 for workload in one_to_one
 do
-    python mptcp_test.py --bw 2 \
+    python mptcp_test.py --bw 1 \
         --delay 1 \
         --workload $workload \
         --topology ft$k \

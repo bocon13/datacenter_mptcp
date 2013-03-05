@@ -48,3 +48,5 @@ def enable_mptcp(mptcp_subflows):
     if mptcp_subflows > 1:
         set_enabled(True)
         set_ndiffports(mptcp_subflows)
+    else:
+        reset()

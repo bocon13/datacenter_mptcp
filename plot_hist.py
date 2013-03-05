@@ -62,7 +62,7 @@ for f in args.files:
     else:
       max_throughput = float(val)
   else:
-    print "ERROR!!!!!!!!!!!!!!!!!!!"  
+    print "         ERROR!!!!!!!!!!!!!!!!!!!"  
 
 print throughput 
 
