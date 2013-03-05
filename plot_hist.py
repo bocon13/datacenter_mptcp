@@ -6,6 +6,7 @@ import numpy as np
 parser = argparse.ArgumentParser()
 parser.add_argument('-f', dest="files", nargs='+', required=True)
 parser.add_argument('-o', '--out', dest="out", default=None)
+parser.add_argument('-k', dest="k", default=None)
 
 args = parser.parse_args()
 
@@ -52,14 +53,17 @@ for f in args.files:
   output = []
   for line in open(f).xreadlines():
     output.append(line)
-  val = output[-2].rstrip().split(',')[-1]
-  print flow, val
+  if len(output) > 0:
+    val = output[-2].rstrip().split(',')[-1]
+    print flow, val
 
-  if f.find('client') >= 0:
-    throughput[flow].append(float(val))
+    if f.find('client') >= 0:
+      throughput[flow].append(float(val))
+    else:
+      max_throughput = float(val)
   else:
-    max_throughput = float(val)
-    
+    print "ERROR!!!!!!!!!!!!!!!!!!!"  
+
 print throughput 
 
 avgThroughput = []
@@ -91,7 +95,7 @@ print max_throughput
 # set up plot
 m.rc('figure', figsize=(16, 6))
 fig = plt.figure()
-title = 'Fat Tree (k=4), One-to-one workload'
+title = 'Fat Tree (k=%s), One-to-one workload' % args.k
 # plot rank of flow
 axPlot = fig.add_subplot(1, 2, 2)
 #axPlot.plot(first(cwnd_time), second(cwnd_time), lw=2, label="$MPTCP$")

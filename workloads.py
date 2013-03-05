@@ -48,5 +48,5 @@ class OneToOneWorkload():
                            shell=True))
 
         progress(self.seconds + 5) # 5 second buffer to tear down connections and write output
-        #for proc in procs:
-        #    proc.communicate()
+        for proc in procs:
+            proc.communicate()

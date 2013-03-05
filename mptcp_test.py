@@ -103,7 +103,10 @@ def get_max_throughput(net, dir):
     os.system('killall -9 ' + CUSTOM_IPERF_PATH)
 
 def get_topology():
-    return FatTreeTopo()
+    if args.topo.find('ft') == 0:
+      K = int(args.topo[2:])
+      print 'fat tree with %d' % K 
+      return FatTreeTopo(k=K)
 
 def get_workload(net):
     return OneToOneWorkload(net, args.iperf, SECONDS_TO_RUN)
@@ -113,13 +116,14 @@ def main():
 
     start = time()
     topo = get_topology()
-    link = custom(TCLink, bw=args.bw, delay=args.delay)
+    link = custom(TCLink, bw=args.bw) #, delay=args.delay)
     net = Mininet(controller=RemoteController, topo=topo, host=Host,
                   link=link, switch=OVSKernelSwitch)
     net.start()
     dumpNodeConnections(net.hosts)
     workload = get_workload(net)
-    net.pingAll()
+    #net.pingAll()
+    sleep(5)
 
     top_dir = os.path.join(args.dir, args.topo, args.workload)
     if not os.path.exists(top_dir):
