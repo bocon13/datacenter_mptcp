@@ -18,25 +18,12 @@ def progress(t):
         sleep(1)
     print '\r\n'
 
-class OneToOneWorkload():
+class Workload():
     def __init__(self, net, iperf, seconds):
         self.iperf = iperf
         self.seconds = seconds
         self.mappings = []
         self.net = net
-        hosts = list(net.hosts)
-        shuffle(hosts)
-        group1, group2 = hosts[::2], hosts[1::2]
-        self.create_mappings(list(group1), list(group2))
-        self.create_mappings(group2, group1)
-
-    def create_mappings(self, group1, group2):
-        while group1:
-            server = choice(group1)
-            group1.remove(server)
-            client = choice(group2)
-            group2.remove(client)
-            self.mappings.append((server, client))
 
     def run(self, output_dir):
         for mapping in self.mappings:
@@ -65,6 +52,50 @@ class OneToOneWorkload():
         progress(self.seconds + 5) # 5 second buffer to tear down connections and write output
         for proc in procs:
             proc.communicate()
+
+
+def OneToOneWorkload(Workload):
+    def __init__(self, net, iperf, seconds):
+        Workload.__init__(self, net, iperf, seconds):
+        hosts = list(net.hosts)
+        shuffle(hosts)
+        group1, group2 = hosts[::2], hosts[1::2]
+        self.create_mappings(list(group1), list(group2))
+        self.create_mappings(group2, group1)
+
+    def create_mappings(self, group1, group2):
+        while group1:
+            server = choice(group1)
+            group1.remove(server)
+            client = choice(group2)
+            group2.remove(client)
+            self.mappings.append((server, client))        
+
+
+def OneToSeveralWorkload(Workload):
+    def __init__(self, net, iperf, seconds, num_conn=4):
+        Workload.__init__(self, net, iperf, seconds)
+        self.create_mappings(net.hosts, num_conn)
+
+    def create_mappings(self, group, num_conn):
+        for server in group:
+            clients = list(group)
+            clients.remove(server)
+            shuffle(clients)
+            for client in clients[:num_conn]:
+                self.mappings.append((server, client))
+
+def AllToAllWorkload(Workload):
+    def __init__(self, net, iperf, seconds):
+        Workload.__init__(self, net, iperf, seconds)
+        self.create_mappings(net.hosts)
+
+    def create_mappings(self, group):
+        for server in group:
+            for client in group:
+                if client != server:
+                    self.mappings.append((server, client))
+
 
 def get_txbytes(iface):
     f = open('/proc/net/dev', 'r')
