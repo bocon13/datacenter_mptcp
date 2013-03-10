@@ -73,13 +73,15 @@ title = 'Fat Tree (k=%s), One-to-one workload' % args.k
 axPlot = fig.add_subplot(1, 1, 1)
 #axPlot.plot(first(cwnd_time), second(cwnd_time), lw=2, label="$MPTCP$")
 #axPlot.plot(first(cwnd_time), second(cwnd_time), lw=2, label="$x$")
-for flow in link_util:
+colors = ['#ff0000','#ff7f00','#ffff00','#00ff00','#00ffff', '#0000ff', '#4B0082',
+          '#8F00FF']
+for flow in sorted(link_util.keys()):
     xaxis = range(len(link_util[flow]))
     if flow == '1':
         label = "TCP"
     else:
         label = "MPTCP, %s subflows" % flow
-    axPlot.plot(xaxis, link_util[flow], lw=2, label=label)
+    axPlot.plot(xaxis, link_util[flow], lw=2, label=label, color=colors[int(flow) - 1])
 #axPlot.grid(True)
 axPlot.legend(loc='lower right')
 axPlot.set_xlabel("Rank of Link")
