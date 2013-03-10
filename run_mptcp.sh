@@ -40,7 +40,7 @@ do
        # plot throughput
        python plot_hist.py -k $k -f results/ft$k/$workload/*/client_iperf* results/ft$k/$workload/max_throughput.txt -o plots/ft$k-$workload-throughput.png
        # plot link util
-       # TODO
+       python plot_link_util.py -k $k -f results/ft$k/$workload/*/link_util* -o plots/ft$k-$workload-link_util.png
 
   done
 done
