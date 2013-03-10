@@ -33,7 +33,7 @@ We have made the following image available on EC2 [US West (Oregon)]:
 TODO: size recommendations
 
 
-### Starting with the CS244 image on EC2
+### Starting with the CS244 image on EC2 (Recommended)
 Start will the following EC2 image: `CS244-Win13-Mininet`
 
 Then, follow the instructions here:
