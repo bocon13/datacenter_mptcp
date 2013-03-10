@@ -40,10 +40,9 @@ Then, follow the instructions here:
 `https://github.com/bocon13/mptcp_setup`
 
 ### Starting with a fresh Ubuntu 12.10 image on EC2
-You will need to install Mininet, Matplotlib, TermColor, and sysstat. We have made the following scripts 
-to install MPTCP and RiplPox (+ dependencies).
+You will need to install Mininet, Matplotlib, TermColor, and sysstat on your own. 
 
-Then, follow the instructions here to install MPTCP, RiplPox, and sysstat:
+We have made the following scripts to install MPTCP and RiplPox (+ dependencies):
 `https://github.com/bocon13/mptcp_setup`
 
 Setting up the Test
