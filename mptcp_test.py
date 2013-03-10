@@ -114,7 +114,12 @@ def get_topology(output_dir):
       return FatTreeTopo(k=K), pox_c
 
 def get_workload(net):
-    return OneToOneWorkload(net, args.iperf, args.time)
+    if args.workload == "one_to_one":
+        return OneToOneWorkload(net, args.iperf, args.time)
+    else if args.workload == "one_to_several":
+        return OneToSeveralWorkload(net, args.iperf, args.time)
+    else:
+        return AllToAllWorkload(net, args.iperf, args.time)
 
 def main():
     top_dir = os.path.join(args.dir, args.topo, args.workload)
