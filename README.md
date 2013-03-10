@@ -33,7 +33,7 @@ We have made the following image available on EC2 [US West (Oregon)]:
 You should use a `c1.xlarge` instance for the experiments.
 
 If you use a `c1.medium` instance, make sure to turn off queue monitoring
-and don't use a Fat Tree topology with greater than 6, unless your goal
+and don't use a Fat Tree topology with k > 6, unless your goal
 is to max out the CPU.
 
 ### Starting with the CS244 image on EC2
