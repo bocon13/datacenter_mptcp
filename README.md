@@ -36,6 +36,9 @@ If you use a `c1.medium` instance, make sure to turn off queue monitoring
 and don't use a Fat Tree topology with k > 6, unless your goal
 is to max out the CPU.
 
+For more detailed instructions, follow the guide here:
+http://www.stanford.edu/class/cs244/2013/ec2.html
+
 ### Starting with the CS244 image on EC2
 Start will the following EC2 image: `CS244-Win13-Mininet`
 
@@ -107,7 +110,8 @@ Observing your results
 The results are graphs that are saved to the **plots** sub-directory.
 
 #### Easiest way to view results
-Start a webserver on your EC2 instance (ensure that port 8000 is open):
+Start a webserver on your EC2 instance (ensure that port 8000 is open):   
+_Check out the **Modify Security Group Settings** in http://www.stanford.edu/class/cs244/2013/ec2.html_
 
 `python -m SimpleHTTPServer &> /dev/null &`
 
