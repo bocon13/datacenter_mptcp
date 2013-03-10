@@ -8,6 +8,8 @@ import sys
 import termcolor as T
 from mininet.cli import CLI
 from collections import defaultdict, Counter
+from monitor import monitor_qlen
+from multiprocessing import Process
 from util.helper import *
 
 def median(l):
@@ -49,8 +51,10 @@ class Workload():
                     "%s -c %s -p %s -t %d -yc -i 10 > %s/client_iperf-%s.txt" %
                     (self.iperf, server.IP(), 5001, self.seconds,
                      output_dir, client.name), shell=True))
-            client.popen("ping -c 12 -i 5 %s > %s/client_ping-%s.txt"
-                         % (server.IP(), output_dir, client.name), shell=True)
+            num_pings = int(self.seconds / 5)
+            client.popen("ping -c %d -i 5 %s > %s/client_ping-%s.txt"
+                         % (num_pings, server.IP(), output_dir, client.name),
+                         shell=True)
 
         interfaces = []
         for node in self.net.switches:
@@ -58,14 +62,24 @@ class Workload():
                 if intf.link:
                     interfaces.append(intf.link.intf1.name)
                     interfaces.append(intf.link.intf2.name)
+
+        qmons = []
+        switch_names = [switch.name for switch in self.net.switches]
+        for iface in interfaces:
+            if iface.split('-')[0] in switch_names:
+                qmons.append(start_qmon(iface,
+                                        outfile="%s/queue_size-%s.txt"
+                                        % (output_dir, iface)))
+
         #wait until established, or take samples over whole test after established
-        sleep(10)
+        sleep(5)
         get_rates(interfaces, output_dir)
 
         progress(self.seconds + 5) # 5 second buffer to tear down connections
         for proc in procs:
             proc.communicate()
-
+        for qmon in qmons:
+            qmon.terminate()
 
 class OneToOneWorkload(Workload):
     def __init__(self, net, iperf, seconds):
@@ -167,3 +181,9 @@ def get_rates(ifaces, output_dir, nsamples=NSAMPLES, period=SAMPLE_PERIOD_SEC,
     for iface in ret:
         f.write("%f\n" % median(ret[iface]))
     f.close()
+
+def start_qmon(iface, interval_sec=1.0, outfile="q.txt"):
+    monitor = Process(target=monitor_qlen,
+                      args=(iface, interval_sec, outfile))
+    monitor.start()
+    return monitor

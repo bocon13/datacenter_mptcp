@@ -29,10 +29,10 @@ do
       # run experiment
       python mptcp_test.py \
           --bw 1 \
-          --queue 10 \
+          --queue 100 \
           --workload $workload \
           --topology ft$k \
-          --time 60 \
+          --time 20 \
           --iperf $iperf
   
        # plot RTT
@@ -41,7 +41,7 @@ do
        python plot_hist.py -k $k -f results/ft$k/$workload/*/client_iperf* results/ft$k/$workload/max_throughput.txt -o plots/ft$k-$workload-throughput.png
        # plot link util
        python plot_link_util.py -k $k -f results/ft$k/$workload/*/link_util* -o plots/ft$k-$workload-link_util.png
-
+       python plot_queue.py -k $k -f results/ft$k/$workload/*/queue_size* -o plots/ft$k-$workload-queue_size.png
   done
 done
 
