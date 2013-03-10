@@ -1,1 +1,0 @@
-python plot_link_util.py -f results/ft4/one_to_one/*/link_util.txt -o link_util.png -k 4
