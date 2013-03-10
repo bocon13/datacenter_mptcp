@@ -1,7 +1,12 @@
-datacenter_mptcp
-================
+Improving Datacenter Performance using MPTCP
+============================================
+CS244: Win 2013
 
-CS244 Win 2013 - MPTCP
+The goal of this project is to use Mininet to reproduce the results of: 
+_Improving Datacenter Performance and Robustness with Multipath TCP_
+by Raiciu et al. which appeared in SIGCOMM11.
+
+Authors: Brian O'Connor & Ryan Wilson
 
 Preliminaries
 -------------
@@ -17,13 +22,20 @@ http://matplotlib.org/index.html
 * TermColor
 https://pypi.python.org/pypi/termcolor
 * Sysstat
-sudo apt-get install sysstat
+`sudo apt-get install sysstat`
 
 ### Starting with our image on EC2
+**This is the easiest way to get started.**
+
 We have made the following image available on EC2 [US West (Oregon)]:
 `fooo`
 
+TODO: size recommendations
+
+
 ### Starting with the CS244 image on EC2
+TODO:
+
 Follow the insructions here:
 `https://github.com/bocon13/mptcp_setup`
 
@@ -31,13 +43,19 @@ Follow the insructions here:
 You will need to install Mininet, Matplotlib, TermColor, and sysstat. We have made the following scripts 
 to install MPTCP and RiplPox (+ dependencies).
 
-Follow the instructions here:
+Then, follow the instructions here to install MPTCP, RiplPox, and sysstat:
 `https://github.com/bocon13/mptcp_setup`
 
 Setting up the Test
 -------------------
 
-`git clone`
+Clone the code repository
+
+`git clone https://github.com/bocon13/datacenter_mptcp.git`
+
+Initialize the *util* submodule and clone it
+
+`cd datacenter_mptcp`
 
 `git submodule init`
 
@@ -46,4 +64,8 @@ Setting up the Test
 
 Running the test
 ----------------
-sudo ./run_mptcp.sh
+Use the following command to run the experiments:
+
+`sudo ./run_mptcp.sh`
+
+The results are in the **plots** directory.
