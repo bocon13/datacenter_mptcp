@@ -10,6 +10,16 @@ from mininet.cli import CLI
 from collections import defaultdict, Counter
 from util.helper import *
 
+def median(l):
+    "Compute median from an unsorted list of values"
+    s = sorted(l)
+    if len(s) % 2 == 1:
+        return s[(len(l) + 1) / 2 - 1]
+    else:
+        lower = s[len(l) / 2 - 1]
+        upper = s[len(l) / 2]
+        return float(lower + upper) / 2
+
 def progress(t):
     while t > 0:
         print T.colored('  %3d seconds left       \r' % (t), 'cyan'),
@@ -60,6 +70,7 @@ class OneToOneWorkload():
                     interfaces.append(intf.link.intf1.name)
                     interfaces.append(intf.link.intf2.name)
         #wait until established, or take samples over whole test after established
+        sleep(10)
         get_rates(interfaces, output_dir)
 
         progress(self.seconds + 5) # 5 second buffer to tear down connections and write output
@@ -82,9 +93,9 @@ def get_txbytes(iface):
 # lo: 6175728   53444    0    0    0     0          0         0  6175728   53444 0    0    0     0       0          0                                                          
     return float(line.split()[9])
 
-NSAMPLES = 3
+NSAMPLES = 4
 SAMPLE_PERIOD_SEC = 1.0
-SAMPLE_WAIT_SEC = 3.0
+SAMPLE_WAIT_SEC = 10.0
 
 def get_rates(ifaces, output_dir, nsamples=NSAMPLES, period=SAMPLE_PERIOD_SEC,
               wait=SAMPLE_WAIT_SEC):
@@ -121,5 +132,5 @@ def get_rates(ifaces, output_dir, nsamples=NSAMPLES, period=SAMPLE_PERIOD_SEC,
         sleep(period)
     f = open("%s/link_util.txt" % output_dir, 'w')
     for iface in ret:
-        f.write("%f\n" % avg(ret[iface]))
+        f.write("%f\n" % median(ret[iface]))
     f.close()

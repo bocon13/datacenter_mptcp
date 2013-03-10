@@ -22,9 +22,9 @@ mkdir -p plots
 
 # Run Mininet tests
 cd ~/mininet_mptcp
-for k in 4 #6 8 10 12
+for k in 4 6 8 10
 do
-  for workload in one_to_one
+  for workload in one_to_one one_to_several all_to_all
   do
       # run experiment
       python mptcp_test.py \
@@ -32,7 +32,7 @@ do
           --queue 10 \
           --workload $workload \
           --topology ft$k \
-          --time 10 \
+          --time 60 \
           --iperf $iperf
   
        # plot RTT
