@@ -73,29 +73,36 @@ Use the following command to run the experiments:
 
 `sudo ./run_mptcp.sh`
 
-This will run the one-to-one workload (used in the paper) on a Fat Tree topology (k=4).
+This will run the one-to-one workload (used in the paper) on a Fat Tree topology (k=4) with queue monitoring disabled.
 
 #### Test options
 
 Our test is capable of running various sized FatTree topologies and workloads.
 
 You can specify them in the run command:
-`sudo ./run_mptcp.sh <size of fat tree> <workload>`
+`sudo ./run_mptcp.sh <size of fat tree> <workload> <queue monitoring enabled>`
 
-For `<size of fat tree>`, valid values are even integers >= 4.
+For `<size of fat tree>`, valid values are even integers >= 4. (default = 4)
 
 For `<workload>`, valid values are: 
-* one_to_one
+* one_to_one (default)
 * one_to_several
 * all_to_all
 
+For `<queue monitoring enabled>`, valid values are `True` or `False` (default).
+
 Examples:
-* Run a Fat Tree topology (k=6) with one_to_one workload
+* Run a Fat Tree topology (k=6) with one_to_one workload with queue monitoring disabled:
 `sudo ./run_mptcp.sh 6`
-* Run a Fat Tree topology (k=8) with all_to_all workload
+* Run a Fat Tree topology (k=8) with all_to_all workload with queue monitoring disabled:
 `sudo ./run_mptcp.sh 8 all_to_all`
-* Run all workloads on various Fat Tree topologies: k = {4, 6, 8, 10, 12}
+* Run all workloads on various Fat Tree topologies: k = {4, 6, 8, 10, 12} with queue monitoring disabled:
 `sudo ./run_mptcp.sh all all`
+* Run a Fat Tree topology (k=4) with one_to_one workload with queue monitoring disabled:
+`sudo ./run_mptcp.sh 4 one_to_one False`
+* Run a Fat Tree topology (k=4) with one_to_one workload with queue monitoring enabled:
+`sudo ./run_mptcp.sh 4 one_to_one True`
+
 
 #### Observing your results
 The results are graphs that are saved to the **plots** sub-directory.
