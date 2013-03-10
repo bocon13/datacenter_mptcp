@@ -65,9 +65,9 @@ class Workload():
             proc.communicate()
 
 
-def OneToOneWorkload(Workload):
+class OneToOneWorkload(Workload):
     def __init__(self, net, iperf, seconds):
-        Workload.__init__(self, net, iperf, seconds):
+        Workload.__init__(self, net, iperf, seconds)
         hosts = list(net.hosts)
         shuffle(hosts)
         group1, group2 = hosts[::2], hosts[1::2]
@@ -83,7 +83,7 @@ def OneToOneWorkload(Workload):
             self.mappings.append((server, client))        
 
 
-def OneToSeveralWorkload(Workload):
+class OneToSeveralWorkload(Workload):
     def __init__(self, net, iperf, seconds, num_conn=4):
         Workload.__init__(self, net, iperf, seconds)
         self.create_mappings(net.hosts, num_conn)
@@ -96,7 +96,7 @@ def OneToSeveralWorkload(Workload):
             for client in clients[:num_conn]:
                 self.mappings.append((server, client))
 
-def AllToAllWorkload(Workload):
+class AllToAllWorkload(Workload):
     def __init__(self, net, iperf, seconds):
         Workload.__init__(self, net, iperf, seconds)
         self.create_mappings(net.hosts)

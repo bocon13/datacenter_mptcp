@@ -23,7 +23,7 @@ import os
 
 from mptcp_util import enable_mptcp, reset
 from dctopo import FatTreeTopo
-from workloads import OneToOneWorkload
+from workloads import OneToOneWorkload, OneToSeveralWorkload, AllToAllWorkload
 
 def cprint(s, color, cr=True):
     """Print in color
@@ -116,7 +116,7 @@ def get_topology(output_dir):
 def get_workload(net):
     if args.workload == "one_to_one":
         return OneToOneWorkload(net, args.iperf, args.time)
-    else if args.workload == "one_to_several":
+    elif args.workload == "one_to_several":
         return OneToSeveralWorkload(net, args.iperf, args.time)
     else:
         return AllToAllWorkload(net, args.iperf, args.time)
