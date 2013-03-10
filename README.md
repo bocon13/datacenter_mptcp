@@ -102,9 +102,11 @@ Examples:
 `sudo ./run_mptcp.sh 4 one_to_one qmon`
 
 
-#### Observing your results
+Observing your results
+----------------------
 The results are graphs that are saved to the **plots** sub-directory.
 
+#### Easiest way to view results
 Start a webserver on your EC2 instance (ensure that port 8000 is open):
 
 `python -m SimpleHTTPServer &> /dev/null &`
