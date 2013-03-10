@@ -43,6 +43,7 @@ do
        python plot_link_util.py -k $k -f results/ft$k/$workload/*/link_util* -o plots/ft$k-$workload-link_util.png
        # plot queue size
        for f in {1..8}
+       do
            python plot_queue.py -k $k -f results/ft$k/$workload/flows$f/queue_size* -o plots/ft$k-$workload-flows$f-queue_size.png
        done
   done

@@ -7,6 +7,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-f', dest="files", nargs='+', required=True)
 parser.add_argument('-o', '--out', dest="out", default=None)
 parser.add_argument('-k', dest="k", default=None)
+parser.add_argument('-w', dest="workload", default=None)
 
 args = parser.parse_args()
 
@@ -68,7 +69,7 @@ for f in args.files:
 # set up plot
 m.rc('figure', figsize=(16, 6))
 fig = plt.figure()
-title = 'Fat Tree (k=%s), One-to-one workload' % args.k
+title = 'Fat Tree (k=%s), %s workload' % (args.k, args.workload)
 # plot rank of flow
 axPlot = fig.add_subplot(1, 1, 1)
 #axPlot.plot(first(cwnd_time), second(cwnd_time), lw=2, label="$MPTCP$")

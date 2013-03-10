@@ -24,6 +24,7 @@ parser.add_argument('-k',
                     dest="k", 
                     help="Degree of the Fat Tree",
                     default=None)
+parser.add_argument('-w', dest="workload", default=None)
 
 args = parser.parse_args()
 
@@ -76,7 +77,7 @@ xoffset = (1 - width) / 2
 axHist.bar(xaxis + xoffset, avgPings, width, color='k') #, yerr=menStd)               
 axHist.set_xlabel("No. of MPTCP Subflows")
 axHist.set_ylabel("Average RTT (in ms)")
-axHist.set_title("Fat Tree (k=%s), One-to-one workload" % args.k)
+axHist.set_title("Fat Tree (k=%s), %s workload" % (args.k, args.workload))
 axHist.set_xticks(xaxis + width/2 + xoffset)
 axHist.set_xticklabels( labels )
 

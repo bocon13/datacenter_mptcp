@@ -7,6 +7,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-f', dest="files", nargs='+', required=True)
 parser.add_argument('-o', '--out', dest="out", default=None)
 parser.add_argument('-k', dest="k", default=None)
+parser.add_argument('-w', dest="workload", default=None)
 
 args = parser.parse_args()
 
@@ -53,7 +54,7 @@ for topo in sorted(utilization.keys()):
 # set up plot
 m.rc('figure', figsize=(8, 6))
 fig = plt.figure()
-title = 'CPU Utilization, One-to-one workload'
+title = 'CPU Utilization, %s workload' % args.workload
 # plot rank of flow
 
 xaxis = np.arange(len(x_labels))  # the x locations for the groups

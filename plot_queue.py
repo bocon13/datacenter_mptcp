@@ -40,7 +40,7 @@ parser.add_argument('--every',
                     default=1,
                     type=int)
 parser.add_argument('-k', dest="k", default=None)
-
+parser.add_argument('-w', dest="workload", default=None)
 
 args = parser.parse_args()
 
@@ -65,7 +65,7 @@ def get_style(i):
 
 m.rc('figure', figsize=(16, 6))
 fig = figure()
-title = 'Fat Tree (k=%s), One-to-one workload' % args.k
+title = 'Fat Tree (k=%s), %s workload' % (args.k, args.workload)
 ax = fig.add_subplot(111)
 get_colors()
 for i, f in enumerate(args.files):
