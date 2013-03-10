@@ -2,10 +2,7 @@
 Plot ping RTTs over time
 '''
 from util.helper import *
-import plot_defaults
 from collections import defaultdict
-from matplotlib.ticker import MaxNLocator
-from pylab import figure
 import numpy as np
 
 parser = argparse.ArgumentParser()
@@ -23,6 +20,10 @@ parser.add_argument('--freq',
 parser.add_argument('--out', '-o',
                     help="Output png file for the plot.",
                     default=None) # Will show the plot
+parser.add_argument('-k', 
+                    dest="k", 
+                    help="Degree of the Fat Tree",
+                    default=None)
 
 args = parser.parse_args()
 
@@ -43,14 +44,14 @@ def parse_ping(fname):
             break
     return ret
 
-m.rc('figure', figsize=(16, 6))
-fig = figure()
+m.rc('figure', figsize=(8, 6))
+fig = plt.figure()
 axHist = fig.add_subplot(111)
 
 pings = defaultdict(list)
 
 for f in args.files:
-  print f
+  #print f
   if not f.find('ping'):
       continue
 
@@ -61,7 +62,7 @@ for f in args.files:
   avgVal = avg([x[1] for x in val])
   pings[flow].append(avgVal)
 
-print pings
+#print pings
 
 avgPings = []
 for flow in pings:
@@ -75,7 +76,7 @@ xoffset = (1 - width) / 2
 axHist.bar(xaxis + xoffset, avgPings, width, color='k') #, yerr=menStd)               
 axHist.set_xlabel("No. of MPTCP Subflows")
 axHist.set_ylabel("Average RTT (in ms)")
-axHist.set_title("Fat Tree (k=4), One-to-one workload")
+axHist.set_title("Fat Tree (k=%s), One-to-one workload" % args.k)
 axHist.set_xticks(xaxis + width/2 + xoffset)
 axHist.set_xticklabels( labels )
 
