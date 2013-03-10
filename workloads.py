@@ -41,6 +41,7 @@ class OneToOneWorkload():
             server = mapping[0]
             server.popen("%s -s -p %s > %s/server_iperf-%s.txt" %
                          (self.iperf, 5001, output_dir, server.name), shell=True)
+        Popen('mpstat 2 %d > %s/cpu_utilization.txt' % (self.seconds/2 + 2, output_dir), shell=True)
         procs = []
         for mapping in self.mappings:
             server, client = mapping
@@ -50,7 +51,6 @@ class OneToOneWorkload():
             client.popen("ping -c 12 -i 5 %s > %s/client_ping-%s.txt"
                          % (server.IP(), output_dir, client.name), shell=True)
 
-        Popen('mpstat 2 %d > %s/cpu_utilization.txt' % (self.seconds/2, output_dir), shell=True)
 
         progress(self.seconds + 5) # 5 second buffer to tear down connections and write output
         for proc in procs:
