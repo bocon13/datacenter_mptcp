@@ -1,1 +1,1 @@
-python plot_hist.py -k 4 -f results/ft4/one_to_one/*/* results/ft4/one_to_one/max_throughput.txt -o test.png
+python plot_hist.py -k 4 -f results/ft4/one_to_one/*/client_iperf* results/ft4/one_to_one/max_throughput.txt -o test.png
