@@ -12,7 +12,9 @@ ctrlc() {
 trap ctrlc SIGINT
 
 iperf=~/iperf-patched/src/iperf
-
+time=40
+bw=1
+queue_size=100
 # Start POX controller with ECMP routing on FatTree-4
 #echo "python ~/pox/pox.py --no-cli riplpox.riplpox --topo=ft,$k --routing=hashed --mode=reactive &> controller.out &"
 #python ~/pox/pox.py --no-cli riplpox.riplpox --topo=ft,$k --routing=hashed --mode=reactive &> controller.out &
@@ -24,21 +26,21 @@ mkdir -p plots
 #cd ~/mininet_mptcp
 for k in 4 6 8 10
 do
-  for workload in one_to_one one_to_several all_to_all
+  for workload in one_to_one #one_to_several all_to_all
   do
       # run experiment
       python mptcp_test.py \
-          --bw 1 \
-          --queue 100 \
+          --bw $bw \
+          --queue $queue_size \
           --workload $workload \
           --topology ft$k \
-          --time 20 \
+          --time $time \
           --iperf $iperf
   
        # plot RTT
        python plot_ping.py -k $k -w $workload -f results/ft$k/$workload/*/client_ping* -o plots/ft$k-$workload-rtt.png
        # plot throughput
-       python plot_hist.py -k $k -w $workload -f results/ft$k/$workload/*/client_iperf* results/ft$k/$workload/max_throughput.txt -o plots/ft$k-$workload-throughput.png
+       python plot_hist.py -k $k -w $workload -t $time -f results/ft$k/$workload/*/client_iperf* results/ft$k/$workload/max_throughput.txt -o plots/ft$k-$workload-throughput.png
        # plot link util
        python plot_link_util.py -k $k -w $workload -f results/ft$k/$workload/*/link_util* -o plots/ft$k-$workload-link_util.png
        # plot queue size

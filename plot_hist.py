@@ -8,6 +8,7 @@ parser.add_argument('-f', dest="files", nargs='+', required=True)
 parser.add_argument('-o', '--out', dest="out", default=None)
 parser.add_argument('-k', dest="k", default=None)
 parser.add_argument('-w', dest="workload", default=None)
+parser.add_argument('-t', dest="time", type=int, default=None)
 
 args = parser.parse_args()
 
@@ -53,11 +54,14 @@ for f in args.files:
   flow = f[f.find('flows') + len('flows')]
   output = []
   for line in open(f).xreadlines():
-    output.append(line)
-  if len(output) > 0:
-    val = output[-2].rstrip().split(',')[-1]
-    #print flow, val
+    data = line.rstrip().split(',')
+    interval = data[-3].split('-')
+    if float(interval[0]) == 0.0 or float(interval[1]) > args.time:
+      continue
+    output.append(float(data[-1]))
 
+  if len(output) > 0:
+    val = avg(output)
     if f.find('client') >= 0:
       throughput[flow].append(float(val))
     else:
@@ -73,7 +77,7 @@ tcp_points = []
 mptcp_points = []
 for i in sorted(throughput.keys()):
   #print i 
-  vals = [ 100 * x / max_throughput  for x in throughput[i] ] 
+  vals = [ 100.0 * x / max_throughput  for x in throughput[i] ] 
   avgThroughput.append(avg(vals))
   if i == '1':
     tcp_points = sorted(vals)

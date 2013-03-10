@@ -94,7 +94,7 @@ def stop_tcpprobe():
 def get_max_throughput(net, output_dir):
     reset()
     print "Finding max throughput..."
-    seconds = 20
+    seconds = args.time
     server, client = net.hosts[0], net.hosts[1]
     server.popen("%s -s -p %s" %
                 (CUSTOM_IPERF_PATH, 5001), shell=True)
