@@ -2,7 +2,7 @@
 Plot queue occupancy over time
 '''
 from helper import *
-import plot_defaults
+# import plot_defaults
 
 from matplotlib.ticker import MaxNLocator
 from pylab import figure
@@ -63,7 +63,7 @@ from random import randint
 def get_style(i):
     return colors[randint(0, len(colors) - 1)]
 
-m.rc('figure', figsize=(16, 6))
+m.rc('figure', figsize=(8, 6))
 fig = figure()
 title = 'Fat Tree (k=%s), %s workload' % (args.k, args.workload)
 ax = fig.add_subplot(111)

@@ -106,6 +106,6 @@ do
 done
 
 # plot cpu utilization
-python plot_cpu.py -f results/ft*/one_to_one/flows*/cpu_utilization.txt -o plots/cpu_util.png
+python plot_cpu.py -w one_to_one -f results/ft*/one_to_one/flows*/cpu_utilization.txt -o plots/cpu_util.png
 
 
