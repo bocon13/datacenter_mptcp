@@ -41,7 +41,10 @@ do
        python plot_hist.py -k $k -f results/ft$k/$workload/*/client_iperf* results/ft$k/$workload/max_throughput.txt -o plots/ft$k-$workload-throughput.png
        # plot link util
        python plot_link_util.py -k $k -f results/ft$k/$workload/*/link_util* -o plots/ft$k-$workload-link_util.png
-       python plot_queue.py -k $k -f results/ft$k/$workload/*/queue_size* -o plots/ft$k-$workload-queue_size.png
+       # plot queue size
+       for f in {1..8}
+           python plot_queue.py -k $k -f results/ft$k/$workload/flows$f/queue_size* -o plots/ft$k-$workload-flows$f-queue_size.png
+       done
   done
 done
 
