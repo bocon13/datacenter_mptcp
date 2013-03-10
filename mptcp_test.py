@@ -129,7 +129,9 @@ def main():
     net.start()
 
     workload = get_workload(net)
+    #net.pingAll()
     sleep(3)
+    #CLI(net)
 
     get_max_throughput(net, top_dir)
 
