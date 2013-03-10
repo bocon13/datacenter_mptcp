@@ -4,7 +4,7 @@ CS244: Win 2013
 
 The goal of this project is to use Mininet to reproduce the results of: 
 _Improving Datacenter Performance and Robustness with Multipath TCP_
-by Raiciu et al. which appeared in SIGCOMM11.
+by Raiciu et al. which appeared in SIGCOMM'11.
 
 Authors: Brian O'Connor & Ryan Wilson
 
