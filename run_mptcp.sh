@@ -15,13 +15,10 @@ iperf=~/iperf-patched/src/iperf
 time=40
 bw=1
 queue_size=100
-# Start POX controller with ECMP routing on FatTree-4
-#echo "python ~/pox/pox.py --no-cli riplpox.riplpox --topo=ft,$k --routing=hashed --mode=reactive &> controller.out &"
-#python ~/pox/pox.py --no-cli riplpox.riplpox --topo=ft,$k --routing=hashed --mode=reactive &> controller.out &
-#pox_pid=$!
+topo_to_run=4
+wl_to_run="one_to_one"
 
-
-# Sanity checks
+# ----- Sanity checks -----
 if [ ! -f $iperf ]
 then
   echo "Patched iperf not installed! ... using regular iperf"
@@ -37,13 +34,53 @@ then
   exit 1
 fi
 
+# ----- Get arguments ------
+#get topo
+if [ "$1" = "all" ]
+then
+  topo_to_run=(4 6 8 10 12)
+else
+  if [ -n "$1" ] && [ $1 -ge 4 ]
+  then
+    topo_to_run=$1
+  fi
+fi
+
+# get workload
+if [ -n "$2" ]
+then
+  wl_to_run=$2
+fi
+if [ "$2" = "all" ]
+then
+  wl_to_run=('one_to_one' 'one_to_several' 'all_to_all')
+fi
+
+echo "Experiments to run..."
+print_topo=''
+for i in ${topo_to_run[*]}
+do
+  print_topo="$print_topo $i"
+done
+echo "Fat Tree topologies: k = $print_topo"
+
+print_wl=''
+for i in ${wl_to_run[*]}
+do
+  print_wl="$print_wl $i"
+done
+echo "Workloads: $print_wl"
+echo
+
+# create directory for plot output
 mkdir -p plots
 
-# Run Mininet tests
-#cd ~/mininet_mptcp
-for k in 4 6 8 10
+
+
+# ----- Run Mininet tests ------
+for k in ${topo_to_run[*]} #4 6 8 10
 do
-  for workload in one_to_one #one_to_several all_to_all
+  for workload in ${wl_to_run[*]} #one_to_one one_to_several all_to_all
   do
       # run experiment
       python mptcp_test.py \
@@ -72,6 +109,3 @@ done
 python plot_cpu.py -f results/ft*/one_to_one/flows*/cpu_utilization.txt -o plots/cpu_util.png
 
 
-# Kills POX processes, remaining python processes
-#killall -9 python
-#kill $pox_pid 
