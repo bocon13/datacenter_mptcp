@@ -21,7 +21,7 @@ iperf=~/iperf-patched/src/iperf
 mkdir -p plots
 
 # Run Mininet tests
-cd ~/mininet_mptcp
+#cd ~/mininet_mptcp
 for k in 4 6 8 10
 do
   for workload in one_to_one one_to_several all_to_all
