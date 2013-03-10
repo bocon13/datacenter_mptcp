@@ -1,6 +1,6 @@
 Improving Datacenter Performance using MPTCP
 ============================================
-CS244: Win 2013
+*CS244: Win 2013*
 
 The goal of this project is to use Mininet to reproduce the results of: 
 _Improving Datacenter Performance and Robustness with Multipath TCP_
