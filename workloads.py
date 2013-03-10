@@ -24,7 +24,7 @@ def median(l):
 
 def progress(t):
     while t > 0:
-        print T.colored('  %3d seconds left       \r' % (t), 'cyan'),
+        print T.colored('  %3d seconds left             \r' % (t), 'cyan'),
         t -= 1
         sys.stdout.flush()
         sleep(1)
