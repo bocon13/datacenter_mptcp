@@ -36,17 +36,19 @@ class Workload():
         self.net = net
 
     def run(self, output_dir):
-        for mapping in self.mappings:
-            server = mapping[0]
+        servers = list(set([mapping[0] for mapping in self.mappings]))
+        for server in servers:
             server.popen("%s -s -p %s > %s/server_iperf-%s.txt" %
                          (self.iperf, 5001, output_dir, server.name), shell=True)
-        Popen('mpstat 2 %d > %s/cpu_utilization.txt' % (self.seconds/2 + 2, output_dir), shell=True)
+        Popen('mpstat 2 %d > %s/cpu_utilization.txt' % (self.seconds/2 + 2,
+                                                        output_dir), shell=True)
         procs = []
         for mapping in self.mappings:
             server, client = mapping
-            procs.append(client.popen("%s -c %s -p %s -t %d -yc -i 10 > %s/client_iperf-%s.txt" %
-                                      (self.iperf, server.IP(), 5001, self.seconds, output_dir, client.name),
-                                      shell=True))
+            procs.append(client.popen(
+                    "%s -c %s -p %s -t %d -yc -i 10 > %s/client_iperf-%s.txt" %
+                    (self.iperf, server.IP(), 5001, self.seconds,
+                     output_dir, client.name), shell=True))
             client.popen("ping -c 12 -i 5 %s > %s/client_ping-%s.txt"
                          % (server.IP(), output_dir, client.name), shell=True)
 
@@ -60,7 +62,7 @@ class Workload():
         sleep(10)
         get_rates(interfaces, output_dir)
 
-        progress(self.seconds + 5) # 5 second buffer to tear down connections and write output
+        progress(self.seconds + 5) # 5 second buffer to tear down connections
         for proc in procs:
             proc.communicate()
 
