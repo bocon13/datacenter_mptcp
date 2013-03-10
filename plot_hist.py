@@ -47,7 +47,7 @@ def constant_factory(value):
 throughput = defaultdict(list)
 max_throughput = 0 
 for f in args.files:
-  print f
+  #print f
 
   flow = f[f.find('flows') + len('flows')]
   output = []
@@ -55,22 +55,23 @@ for f in args.files:
     output.append(line)
   if len(output) > 0:
     val = output[-2].rstrip().split(',')[-1]
-    print flow, val
+    #print flow, val
 
     if f.find('client') >= 0:
       throughput[flow].append(float(val))
     else:
       max_throughput = float(val)
   else:
-    print "         ERROR!!!!!!!!!!!!!!!!!!!"  
+    #print "         ERROR!!!!!!!!!!!!!!!!!!!"  
+    pass
 
-print throughput 
+#print throughput 
 
 avgThroughput = []
 tcp_points = []
 mptcp_points = []
 for i in sorted(throughput.keys()):
-  print i 
+  #print i 
   vals = [ 100 * x / max_throughput  for x in throughput[i] ] 
   avgThroughput.append(avg(vals))
   if i == '1':
@@ -78,8 +79,8 @@ for i in sorted(throughput.keys()):
   if i == '8':
     mptcp_points = sorted(vals)
 
-print avgThroughput
-print max_throughput
+#print avgThroughput
+#print max_throughput
 
 #TODO: TCP n=1 sorted order of data points
 #tcp_points = [1,2,3,4,5]
