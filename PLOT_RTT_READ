@@ -1,0 +1,1 @@
+python plot_ping.py -f results/ft4/one_to_one/*/client_ping* -o rtt.png

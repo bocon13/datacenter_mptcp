@@ -117,7 +117,7 @@ def main():
 
     start = time()
     topo = get_topology()
-    link = custom(TCLink, bw=args.bw) #, delay=args.delay)
+    link = custom(TCLink, bw=args.bw, max_queue_size=10) #, delay=args.delay)
     net = Mininet(controller=RemoteController, topo=topo, host=Host,
                   link=link, switch=OVSKernelSwitch)
     net.start()
@@ -125,6 +125,7 @@ def main():
     workload = get_workload(net)
     #net.pingAll()
     sleep(5)
+    #CLI(net)
 
     top_dir = os.path.join(args.dir, args.topo, args.workload)
     if not os.path.exists(top_dir):

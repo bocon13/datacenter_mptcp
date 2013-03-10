@@ -6,6 +6,7 @@ from mininet.util import pmonitor
 from time import sleep
 import sys
 import termcolor as T
+from mininet.cli import CLI
 
 def progress(t):
     while t > 0:
@@ -20,6 +21,7 @@ class OneToOneWorkload():
         self.iperf = iperf
         self.seconds = seconds
         self.mappings = []
+        self.net = net
         hosts = list(net.hosts)
         shuffle(hosts)
         group1, group2 = hosts[::2], hosts[1::2]
@@ -37,15 +39,18 @@ class OneToOneWorkload():
     def run(self, dir):
         for mapping in self.mappings:
             server = mapping[0]
-            server.popen("%s -s -p %s" %
-                         (self.iperf, 5001), shell=True)
+            server.popen("%s -s -p %s > %s/server_iperf-%s.txt" %
+                         (self.iperf, 5001, dir, server.name), shell=True)
         procs = []
         for mapping in self.mappings:
             server, client = mapping
             procs.append(client.popen("%s -c %s -p %s -t %d -yc -i 10 > %s/client_iperf-%s.txt" %
-                                      (self.iperf, server.IP(), 5001, self.seconds, dir, client.name),
+             (self.iperf, server.IP(), 5001, self.seconds, dir, client.name),
                                       shell=True))
+            client.popen("ping -c 12 -i 5 %s > %s/client_ping-%s.txt"
+                         % (server.IP(), dir, client.name), shell=True)
 
+        # CLI(self.net)
         progress(self.seconds + 5) # 5 second buffer to tear down connections and write output
         for proc in procs:
             proc.communicate()
