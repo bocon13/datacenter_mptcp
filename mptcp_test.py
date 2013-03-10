@@ -75,6 +75,12 @@ parser.add_argument('--time', '-t',
                     action="store",
                     help="Length of experiment in seconds",
                     default=60)
+parser.add_argument('--qmon',
+                    dest="qmon",
+                    action="store_true",
+                    help="Turns on queue monitoring at switches if true",
+                    default=False)
+
 
 # Experiment parameters
 args = parser.parse_args()
@@ -142,7 +148,7 @@ def main():
         cprint("Starting experiment for workload %s with %i subflows" % (
                 args.workload, nflows), "green")
 
-        workload.run(cwd)
+        workload.run(cwd, args.qmon)
 
         # Shut down iperf processes
         os.system('killall -9 ' + CUSTOM_IPERF_PATH)

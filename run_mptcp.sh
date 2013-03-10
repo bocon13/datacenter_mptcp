@@ -17,6 +17,8 @@ bw=1
 queue_size=100
 topo_to_run=4
 wl_to_run="one_to_one"
+qmon=""
+qmon_status="False"
 
 # ----- Sanity checks -----
 if [ ! -f $iperf ]
@@ -56,6 +58,13 @@ then
   wl_to_run=('one_to_one' 'one_to_several' 'all_to_all')
 fi
 
+#get qmon
+if [ -n "$3" ]
+then
+  qmon="--qmon"
+  qmon_status="True"
+fi
+
 echo "Experiments to run..."
 print_topo=''
 for i in ${topo_to_run[*]}
@@ -70,6 +79,7 @@ do
   print_wl="$print_wl $i"
 done
 echo "Workloads: $print_wl"
+echo "Queue monitoring enabled: $qmon_status"
 echo
 
 # create directory for plot output
@@ -78,7 +88,7 @@ mkdir -p plots
 
 
 # ----- Run Mininet tests ------
-for k in ${topo_to_run[*]} #4 6 8 10
+for k in ${topo_to_run[*]} #4 6 8 10 12
 do
   for workload in ${wl_to_run[*]} #one_to_one one_to_several all_to_all
   do
@@ -89,8 +99,9 @@ do
           --workload $workload \
           --topology ft$k \
           --time $time \
-          --iperf $iperf
-  
+          --iperf $iperf \
+          $qmon
+
        # plot RTT
        python plot_ping.py -k $k -w $workload -f results/ft$k/$workload/*/client_ping* -o plots/ft$k-$workload-rtt.png
        # plot throughput
@@ -98,14 +109,19 @@ do
        # plot link util
        python plot_link_util.py -k $k -w $workload -f results/ft$k/$workload/*/link_util* -o plots/ft$k-$workload-link_util.png
        # plot queue size
-       for f in {1..8}
-       do
-           python plot_queue.py -k $k -w $workload -f results/ft$k/$workload/flows$f/queue_size* -o plots/ft$k-$workload-flows$f-queue_size.png
-       done
+       if [ -n "$qmon" ]
+       then
+         for f in {1..8}
+         do
+             python plot_queue.py -k $k -w $workload -f results/ft$k/$workload/flows$f/queue_size* -o plots/ft$k-$workload-flows$f-queue_size.png
+         done
+       fi
   done
 done
 
-# plot cpu utilization
-python plot_cpu.py -w one_to_one -f results/ft*/one_to_one/flows*/cpu_utilization.txt -o plots/cpu_util.png
-
+for workload in ${wl_to_run[*]}
+do
+  # plot cpu utilization
+  python plot_cpu.py -w $workload -f results/ft*/$workload/flows*/cpu_utilization.txt -o plots/cpu_util-$workload.png
+done
 

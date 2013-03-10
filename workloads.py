@@ -37,7 +37,7 @@ class Workload():
         self.mappings = []
         self.net = net
 
-    def run(self, output_dir):
+    def run(self, output_dir, qmon_status):
         servers = list(set([mapping[0] for mapping in self.mappings]))
         for server in servers:
             server.popen("%s -s -p %s > %s/server_iperf-%s.txt" %
@@ -65,13 +65,14 @@ class Workload():
                     interfaces.append(intf.link.intf1.name)
                     interfaces.append(intf.link.intf2.name)
 
-        qmons = []
-        switch_names = [switch.name for switch in self.net.switches]
-        for iface in interfaces:
-            if iface.split('-')[0] in switch_names:
-                qmons.append(start_qmon(iface,
-                                        outfile="%s/queue_size-%s.txt"
-                                        % (output_dir, iface)))
+        if qmon_status:
+            qmons = []
+            switch_names = [switch.name for switch in self.net.switches]
+            for iface in interfaces:
+                if iface.split('-')[0] in switch_names:
+                    qmons.append(start_qmon(iface,
+                                            outfile="%s/queue_size-%s.txt"
+                                            % (output_dir, iface)))
 
         # take utilization samples
         get_rates(interfaces, output_dir)
@@ -79,8 +80,10 @@ class Workload():
         progress(self.seconds - 10) # remove some time for get_rates 
         for proc in procs:
             proc.communicate()
-        for qmon in qmons:
-            qmon.terminate()
+
+        if qmon_status:
+            for qmon in qmons:
+                qmon.terminate()
 
 class OneToOneWorkload(Workload):
     def __init__(self, net, iperf, seconds):
