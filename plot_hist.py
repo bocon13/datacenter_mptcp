@@ -109,6 +109,7 @@ axPlot.plot(xaxis, tcp_points, lw=2, label="TCP")
 axPlot.legend(loc='lower right')
 axPlot.set_xlabel("Rank of Flow")
 axPlot.set_ylabel("Throughput (% of optimal)")
+axPlot.set_ylim(0, 100)
 axPlot.set_title( title )
 
 # plot histogram
@@ -124,6 +125,7 @@ axHist.set_ylabel("Throughput (% of optimal)")
 axHist.set_title( title )
 axHist.set_xticks(xaxis + width/2 + xoffset)
 axHist.set_xticklabels( labels )
+axHist.set_ylim(0, 100)
 
 if args.out:
     print 'saving to', args.out
