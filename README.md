@@ -61,7 +61,7 @@ Initialize the *util* submodule and clone it
 
 `git submodule update`
 
-Patch and install iperf:
+Patch and install iperf (if not using "" image):
 
 `./iperf_patch/build-patched-iperf.sh`
 
