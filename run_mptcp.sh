@@ -36,15 +36,15 @@ do
           --iperf $iperf
   
        # plot RTT
-       python plot_ping.py -k $k -f results/ft$k/$workload/*/client_ping* -o plots/ft$k-$workload-rtt.png
+       python plot_ping.py -k $k -w $workload -f results/ft$k/$workload/*/client_ping* -o plots/ft$k-$workload-rtt.png
        # plot throughput
-       python plot_hist.py -k $k -f results/ft$k/$workload/*/client_iperf* results/ft$k/$workload/max_throughput.txt -o plots/ft$k-$workload-throughput.png
+       python plot_hist.py -k $k -w $workload -f results/ft$k/$workload/*/client_iperf* results/ft$k/$workload/max_throughput.txt -o plots/ft$k-$workload-throughput.png
        # plot link util
-       python plot_link_util.py -k $k -f results/ft$k/$workload/*/link_util* -o plots/ft$k-$workload-link_util.png
+       python plot_link_util.py -k $k -w $workload -f results/ft$k/$workload/*/link_util* -o plots/ft$k-$workload-link_util.png
        # plot queue size
        for f in {1..8}
        do
-           python plot_queue.py -k $k -f results/ft$k/$workload/flows$f/queue_size* -o plots/ft$k-$workload-flows$f-queue_size.png
+           python plot_queue.py -k $k -w $workload -f results/ft$k/$workload/flows$f/queue_size* -o plots/ft$k-$workload-flows$f-queue_size.png
        done
   done
 done
