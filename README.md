@@ -28,7 +28,7 @@ https://pypi.python.org/pypi/termcolor
 **This is the easiest way to get started.**
 
 We have made the following image available on EC2 [US West (Oregon)]:
-`fooo`
+`CS244-Mininet-MPTCP`
 
 TODO: size recommendations
 
@@ -61,7 +61,7 @@ Initialize the *util* submodule and clone it
 
 `git submodule update`
 
-Patch and install iperf (if not using "" image):
+If not using "CS244-Mininet-MPTCP" image, patch and install iperf:
 
 `./iperf_patch/build-patched-iperf.sh`
 
