@@ -34,9 +34,9 @@ TODO: size recommendations
 
 
 ### Starting with the CS244 image on EC2
-TODO:
+Start will the following EC2 image: `CS244-Win13-Mininet`
 
-Follow the insructions here:
+Then, follow the instructions here:
 `https://github.com/bocon13/mptcp_setup`
 
 ### Starting with a fresh Ubuntu 12.10 image on EC2
