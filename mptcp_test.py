@@ -23,7 +23,7 @@ import os
 
 from mptcp_util import enable_mptcp, reset
 from dctopo import FatTreeTopo
-from workloads import OneToOneWorkload, OneToSeveralWorkload, AllToAllWorkload
+from workloads import OneToOneWorkload, OneToSeveralWorkload, AllToAllWorkload, progress
 
 def cprint(s, color, cr=True):
     """Print in color
@@ -82,32 +82,24 @@ CUSTOM_IPERF_PATH = args.iperf
 
 lg.setLogLevel('info')
 
-def start_tcpprobe():
-    "Install tcp_probe module and dump to file"
-    os.system("rmmod tcp_probe 2>/dev/null; modprobe tcp_probe;")
-    Popen("cat /proc/net/tcpprobe > %s/tcp_probe.txt" %
-          args.dir, shell=True)
-
-def stop_tcpprobe():
-    os.system("killall -9 cat; rmmod tcp_probe &>/dev/null;")
-
 def get_max_throughput(net, output_dir):
     reset()
-    print "Finding max throughput..."
+    cprint("Finding max throughput...", 'red')
     seconds = args.time
     server, client = net.hosts[0], net.hosts[1]
     server.popen("%s -s -p %s" %
                 (CUSTOM_IPERF_PATH, 5001), shell=True)
     proc = client.popen("%s -c %s -p %s -t %d -yc -i 10 > %s/max_throughput.txt" %
                    (CUSTOM_IPERF_PATH, server.IP(), 5001, seconds, output_dir), shell=True)
-    
+  
+    progress(args.time + 1)  
     proc.communicate()
     os.system('killall -9 ' + CUSTOM_IPERF_PATH)
 
 def get_topology(output_dir):
     if args.topo.find('ft') == 0:
       K = int(args.topo[2:])
-      print 'fat tree with %d' % K 
+      cprint('FatTree Topology with k=%d' % K, 'green')
 
       pox_c = Popen("exec ~/pox/pox.py --no-cli riplpox.riplpox --topo=ft,%s --routing=hashed --mode=reactive 1> %s/pox.out 2> %s/pox.out" % (K, output_dir, output_dir), shell=True)
       sleep(1) # wait for controller to start

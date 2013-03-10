@@ -42,6 +42,8 @@ class Workload():
         for server in servers:
             server.popen("%s -s -p %s > %s/server_iperf-%s.txt" %
                          (self.iperf, 5001, output_dir, server.name), shell=True)
+
+        # start CPU monitor
         Popen('mpstat 2 %d > %s/cpu_utilization.txt' % (self.seconds/2 + 2,
                                                         output_dir), shell=True)
         procs = []
@@ -71,11 +73,10 @@ class Workload():
                                         outfile="%s/queue_size-%s.txt"
                                         % (output_dir, iface)))
 
-        #wait until established, or take samples over whole test after established
-        sleep(5)
+        # take utilization samples
         get_rates(interfaces, output_dir)
 
-        progress(self.seconds + 5) # 5 second buffer to tear down connections
+        progress(self.seconds - 10) # remove some time for get_rates 
         for proc in procs:
             proc.communicate()
         for qmon in qmons:
@@ -140,9 +141,9 @@ def get_txbytes(iface):
 # lo: 6175728   53444    0    0    0     0          0         0  6175728   53444 0    0    0     0       0          0                                                          
     return float(line.split()[9])
 
-NSAMPLES = 4
+NSAMPLES = 5
 SAMPLE_PERIOD_SEC = 1.0
-SAMPLE_WAIT_SEC = 10.0
+SAMPLE_WAIT_SEC = 15.0
 
 def get_rates(ifaces, output_dir, nsamples=NSAMPLES, period=SAMPLE_PERIOD_SEC,
               wait=SAMPLE_WAIT_SEC):

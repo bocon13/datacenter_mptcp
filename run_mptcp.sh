@@ -20,6 +20,23 @@ queue_size=100
 #python ~/pox/pox.py --no-cli riplpox.riplpox --topo=ft,$k --routing=hashed --mode=reactive &> controller.out &
 #pox_pid=$!
 
+
+# Sanity checks
+if [ ! -f $iperf ]
+then
+  echo "Patched iperf not installed! ... using regular iperf"
+  echo "Install patched iperf using: ./iperf_patch/build-patched-iperf.sh"
+  iperf='iperf'
+  sleep 10
+fi
+
+if [ ! "$(ls -A util)" ]
+then
+  echo "You forgot initialize submodules"
+  echo "Run: git submodule init && git submodule update"
+  exit 1
+fi
+
 mkdir -p plots
 
 # Run Mininet tests
