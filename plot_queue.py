@@ -1,7 +1,7 @@
 '''
 Plot queue occupancy over time
 '''
-from helper import *
+from util.helper import *
 # import plot_defaults
 
 from matplotlib.ticker import MaxNLocator
