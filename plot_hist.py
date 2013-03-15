@@ -47,7 +47,8 @@ def constant_factory(value):
      return itertools.repeat(value).next
 
 throughput = defaultdict(list)
-max_throughput = 0 
+max_throughput = 0
+iperf_data_columns = 9
 for f in args.files:
   #print f
 
@@ -55,7 +56,11 @@ for f in args.files:
   output = []
   for line in open(f).xreadlines():
     data = line.rstrip().split(',')
+    if len(data) != iperf_data_columns:
+        continue
     interval = data[-3].split('-')
+    if len(interval) != 2:
+        continue
     if float(interval[0]) == 0.0 or float(interval[1]) > args.time:
       continue
     output.append(float(data[-1]))

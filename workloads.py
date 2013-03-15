@@ -50,13 +50,13 @@ class Workload():
         for mapping in self.mappings:
             server, client = mapping
             procs.append(client.popen(
-                    "%s -c %s -p %s -t %d -yc -i 10 > %s/client_iperf-%s.txt" %
+                    "%s -c %s -p %s -t %d -yc -i 10 > %s/client_iperf-%s-%s.txt" %
                     (self.iperf, server.IP(), 5001, self.seconds,
-                     output_dir, client.name), shell=True))
+                     output_dir, client.name, server.name), shell=True))
             num_pings = int(self.seconds / 5)
-            client.popen("ping -c %d -i 5 %s > %s/client_ping-%s.txt"
-                         % (num_pings, server.IP(), output_dir, client.name),
-                         shell=True)
+            client.popen("ping -c %d -i 5 %s > %s/client_ping-%s-%s.txt"
+                         % (num_pings, server.IP(), output_dir, client.name,
+                            server.name), shell=True)
 
         interfaces = []
         for node in self.net.switches:
