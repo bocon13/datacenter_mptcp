@@ -104,7 +104,7 @@ Examples:
 * Run a Fat Tree topology (k=4) with one_to_one workload with queue monitoring enabled:
 `sudo ./run_mptcp.sh 4 one_to_one qmon`
 
-IMPORTANT: If you plan to run the same test twice (the same workload on the same topology), make sure
+**IMPORTANT:** If you plan to run the same test twice (the same workload on the same topology), make sure
 you run the command between tests:
 `sudo rm -rf results/ft<size of fat tree>/<workload>`
 
